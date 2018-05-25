@@ -1,0 +1,231 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <h1 class="page-header">CPU分析</h1>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+        <table class="table table-condensed table-striped">
+          <caption>进程信息</caption>
+          <thead>
+            <tr>
+              <th>pid</th>
+              <th>名称</th>
+              <th>状态</th>
+              <th>ppid</th>
+              <th>pgid</th>
+              <th>sid</th>
+              <th>utime</th>
+              <th>stime</th>
+              <th>动态优先级</th>
+              <th>nice</th>
+              <th>线程个数</th>
+              <th>启动时间</th>
+              <th>实时优先级</th>
+              <th>调度策略</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in ordered %}
+            <tr>
+              <td><a href="/process/{{ data[key].stat[0] }}">{{ data[key].stat[0] }}</a></td>
+              <td>{{ data[key].stat[1] }}</td>
+              <td>{{ data[key].stat[2] }}</td>
+              <td><a href="/process/{{ data[key].stat[3] }}">{{ data[key].stat[3] }}</td>
+              <td><a href="/process/{{ data[key].stat[4] }}">{{ data[key].stat[4] }}</td>
+              <td><a href="/process/{{ data[key].stat[5] }}">{{ data[key].stat[5] }}</td>
+              <td>{{ data[key].stat[13] }}</td>
+              <td>{{ data[key].stat[14] }}</td>
+              <td>{{ data[key].stat[17] }}</td>
+              <td>{{ data[key].stat[18] }}</td>
+              <td>{{ data[key].stat[19] }}</td>
+              <td>{{ data[key].stat[21] }}</td>
+              <td>{{ data[key].stat[39] }}</td>
+              <td>{{ data[key].stat[40] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+          <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">查看树图</button>
+            <!-- 模态框（Modal） -->
+            <div class="modal fade text-center" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
+                    <div class="modal-content">
+                        <div class="modal-header"></div>
+                        <div class="modal-body">
+                            <figure>
+                              <embed id="ptree1" type="image/svg+xml" src='/static/pstree.svg?={{ date }}'/>
+                            </figure>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+        </div>
+      </div>
+      <hr/>
+      <div id="pidtreemap" style="min-width:400px;height:800px"></div>
+      <div  align="center">
+      <a class="btn btn-success" href="/process_diffcpu">查看最近最繁忙进程</a>
+      </div>
+      <hr/>
+      <div id="memtreemap" style="min-width:400px;height:400px"></div>
+      <div  align="center">
+      <a class="btn btn-success" href="/process_diffmem">查看最近内存变化</a>
+      </div>
+      </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+            {
+                data : 'pidtreemap',
+                id  : null,
+            },
+            function(data,status){
+                if(status == "success")
+                {
+                    if(data.src)
+                    {
+                    }
+
+                }
+        });
+    }
+    
+    
+    function create_data(len) {
+        // 生成初始化空值
+        var data = [],time = (new Date()).getTime(),i;
+        for (i = -len; i <= 0; i += 1) {
+                data.push({
+                        x: time + i * 1000,
+                        y: 0 //Math.random()
+                });
+        }
+        return data;
+    }
+    
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+    function activeLastPointToolip(chart) {
+            var points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length -1]);
+    }
+    
+
+    var chart_pidtreemap = new Highcharts.Chart({
+            chart: {
+                    renderTo: 'pidtreemap',
+            },
+            title: {
+                    text: '进程总运行时间分布'
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+            type: "treemap",
+            layoutAlgorithm: 'squarified',
+            allowDrillToNode: true,
+            levelIsConstant: false,
+            levels: [{
+                    level: 1,
+                    layoutAlgorithm: 'strip',
+                    dataLabels: {
+                            enabled: true,
+                            align: 'left',
+                            verticalAlign: 'top',
+                            style: {
+                                    fontSize: '15px',
+                                    fontWeight: 'bold'
+                            }
+                    }
+            }],
+            data: [{
+                    id: 'RR',
+                    name: 'rr',
+                    color: "#2980b9"
+            }, {
+                    id: 'FIFO',
+                    name: 'fifo',
+                    color: "#9229b9"
+            }, {
+                    id: 'NORMAL',
+                    name: 'normal',
+                    color: '#3229b9'
+            }, {
+                    id: 'BATCH',
+                    name: 'batch',
+                    color: '#b92980'
+            }, {
+                    id: 'IDLE',
+                    name: 'idle',
+                    color: '#80b929'
+            }, 
+            {% for key in ordered %}
+            {
+                    name: '{{ data[key].stat[1]}}',
+                    {% if data[key].stat[40] == '0' %}
+                        parent: 'NORMAL',
+                    {% elif data[key].stat[40] == '1' %}
+                        parent: 'FIFO',
+                    {% elif data[key].stat[40] == '2' %}
+                        parent: 'RR',
+                    {% elif data[key].stat[40] == '3' %}
+                        parent: 'BATCH',
+                    {% elif data[key].stat[40] == '5' %}
+                        parent: 'IDLE',
+                    {% endif %}
+                    value:{{ data[key].cputime}}
+            },
+            {% endfor %}
+            ]
+        }]
+    });
+
+    var chart_memtreemap = new Highcharts.Chart({
+            chart: {
+                    renderTo: 'memtreemap',
+            },
+            title: {
+                    text: '物理内存使用分布'
+            },
+            credits: {  
+              enabled:false  
+            },  
+            colorAxis: {
+                    minColor: '#FFFFFF',
+                    maxColor: Highcharts.getOptions().colors[0]
+            },            
+            series: [{
+                    type: "treemap",
+                    layoutAlgorithm: 'squarified',
+                    allowDrillToNode: true,
+                    levelIsConstant: false,
+                    data: [
+                        {% for key in ordered %}
+                        {
+                                name: '{{ data[key].stat[1]}}',
+                                {% if data[key].VmRSS %}
+                                value:{{ data[key].VmRSS }},
+                                colorValue: 1,
+                                {% endif %}
+                        },
+                        {% endfor %}
+                    ]
+            }]
+        });
+
+</script>
+{% endblock %}

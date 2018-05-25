@@ -1,0 +1,496 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <h1 class="page-header">{{ data.comm }}</h1>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+        <h5>命令行:</h5>
+        <p>{{ data.cmdline }}</p>
+        <hr/>
+        <table class="table table-condensed">
+          <caption>进程信息</caption>
+          <thead>
+            <tr>
+              <th>pid</th>
+              <th>名称</th>
+              <th>状态</th>
+              <th>ppid</th>
+              <th>pgid</th>
+              <th>sid</th>
+              <th>utime</th>
+              <th>stime</th>
+              <th>动态优先级</th>
+              <th>nice</th>
+              <th>线程个数</th>
+              <th>启动时间</th>
+              <th>实时优先级</th>
+              <th>调度策略</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ data.stat[0] }}</td>
+              <td>{{ data.stat[1] }}</td>
+              <td>{{ data.stat[2] }}</td>
+              <td>{{ data.stat[3] }}</td>
+              <td>{{ data.stat[4] }}</td>
+              <td>{{ data.stat[5] }}</td>
+              <td>{{ data.stat[13] }}</td>
+              <td>{{ data.stat[14] }}</td>
+              <td>{{ data.stat[17] }}</td>
+              <td>{{ data.stat[18] }}</td>
+              <td>{{ data.stat[19] }}</td>
+              <td>{{ data.stat[21] }}</td>
+              <td>{{ data.stat[39] }}</td>
+              <td>{{ data.stat[40] }}</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <hr/>
+        <table class="table table-striped">
+          <caption>信号</caption>
+          <tbody>
+            <tr>
+              <td>私有挂起信号</td>
+              <td>{{ data.status['SigPnd'] }}</td>
+            </tr>
+            <tr>
+              <td>共享挂起信号</td>
+              <td>{{ data.status['ShdPnd'] }}</td>
+            </tr>
+            <tr>
+              <td>阻塞信号</td>
+              <td>{{ data.status['SigBlk'] }}</td>
+            </tr>
+            <tr>
+              <td>忽略信号</td>
+              <td>{{ data.status['SigIgn'] }}</td>
+            </tr>
+            <tr>
+              <td>捕获信号</td>
+              <td>{{ data.status['SigCgt'] }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                        地址空间（点击展开）
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <table class="table table-striped">
+                          <caption>地址空间</caption>
+                          <thead>
+                            <tr>
+                              <th>地址</th>
+                              <th>权限</th>
+                              <th>文件中的偏移</th>
+                              <th>主：次设备号</th>
+                              <th>inode编号</th>
+                              <th>映射的文件名称</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for map in data.maps %}
+                            <tr>
+                              <td>{{ map[0] }}</td>
+                              <td>{{ map[1] }}</td>
+                              <td>{{ map[2] }}</td>
+                              <td>{{ map[3] }}</td>
+                              <td>{{ map[4] }}</td>
+                              <td>{{ map[5] }}</td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12" id="pidvmmemcol" style="min-width:400px;height:400px"></div>
+        <div class="col-md-12" id="pidvmmem" style="min-width:400px;height:400px"></div>
+        <div class="col-md-12" id="pidcputime" style="min-width:400px;height:400px"></div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+            {
+                data : 'pidvmmem',
+                id  : {{ data.pid }},
+            },
+            function(data,status){
+                if(status == "success")
+                {
+                    var series = chart.series;
+                    activeLastPointToolip(chart);
+                    var x = (new Date()).getTime(), // 当前时间
+                    y = data.src[0];
+                    series[0].addPoint([x, y], true, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
+                    y = data.src[1];
+                    series[1].addPoint([x, y], true, true);
+                    y = data.src[2];
+                    series[2].addPoint([x, y], true, true);
+                    y = data.src[3];
+                    series[3].addPoint([x, y], true, true);
+                    y = data.src[4];
+                    series[4].addPoint([x, y], true, true);
+                    chart.redraw()
+                    activeLastPointToolip(chart);
+                    
+                    var series_cpu = chart_cpu.series;
+                    activeLastPointToolip(chart_cpu);
+                    y = data.src[5];
+                    series_cpu[0].addPoint([x, y], true, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
+                    y = data.src[6];
+                    series_cpu[1].addPoint([x, y], true, true);
+                    chart_cpu.redraw()
+                    activeLastPointToolip(chart_cpu);
+                    //document.getElementById("chart1").src=data.src;
+                    //document.getElementById("chart2").src="/static/loadavg.svg?t=" + Date();
+                }
+            });
+    }
+
+    function create_data(len) {
+        // 生成初始化空值
+        var data = [],time = (new Date()).getTime(),i;
+        for (i = -len; i <= 0; i += 1) {
+                data.push({
+                        x: time + i * 1000,
+                        y: 0 //Math.random()
+                });
+        }
+        return data;
+    }
+    
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+    function activeLastPointToolip(chart) {
+            var points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length -1]);
+    }
+    var chart = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'pidvmmem',
+                    marginRight: 10,
+                    events: {
+                            load: function () {
+                                setInterval(autoupdate,1000); 
+                            }
+                    }
+            },
+            title: {
+                    text: '虚拟内存监控'
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: 'kB'
+                    },
+                    min: 0,
+                    allowDecimals: false,
+            },
+            plotOptions: {
+                area: {
+                        stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false 
+                        } 
+                }, 
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    type: 'spline',
+                    name: 'total vm',
+                    data: create_data(100),
+                    stack: 'top'
+            },
+            {
+                    name: 'stk',
+                    data: create_data(100),
+                    stack: 'vm'
+            },
+            {
+                    name: 'data',
+                    data: create_data(100),
+                    stack: 'vm'
+            },
+            {
+                    name: 'lib',
+                    data: create_data(100),
+                    stack: 'vm'
+            },
+            {
+                    name: 'exe',
+                    data: create_data(100),
+                    stack: 'vm'
+            }]
+    });
+    
+    var chart_col = new Highcharts.Chart({
+            chart: {
+                    type: 'column',
+                    renderTo: 'pidvmmemcol',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '虚拟内存分布'
+            },
+            xAxis: {
+                    categories: [
+                        '分布'
+                    ]
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'kB'
+                },
+                plotLines:[{
+                    color:'red',           //线的颜色，定义为红色
+                    dashStyle:'dot',     //默认值，这里定义为实线
+                    value:{{ data.VmPeak }},               //定义在那个值上显示标示线，这里是在x轴上刻度为3的值处垂直化一条线
+                    width:2,                //标示线的宽度，2px
+                    label:{
+                        align:'right', 
+                        text:'虚拟内存最大值{{ data.VmPeak }}kB',
+                    }
+                },{
+                    color:'blue',           //线的颜色，定义为红色
+                    dashStyle:'dot',     //默认值，这里定义为实线
+                    value:{{ data.VmHWM }},               //定义在那个值上显示标示线，这里是在x轴上刻度为3的值处垂直化一条线
+                    width:2,                //标示线的宽度，2px
+                    label:{
+                        align:'right', 
+                        text:'物理内存最大值{{ data.VmHWM }}kB',
+                    }
+                }],
+                
+            },
+            legend: {
+                shadow: false
+            },
+            tooltip: {
+                shared: true
+            },
+            plotOptions: {
+                column: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                }
+            },
+            series: [{
+                name: 'vmtotal',
+                data: [{{ data.VmSize }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },                
+                pointPadding: 0.38,
+                pointPlacement: -0.3,
+                stack: 'top',
+            }, {
+                name: 'stk',
+                data: [{{ data.VmStk }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.3,
+                stack: 'vm',
+            }, {
+                name: 'data',
+                data: [{{ data.VmData }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.3,
+                stack: 'vm',
+            }, {
+                name: 'lib',
+                data: [{{ data.VmLib }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.3,
+                stack: 'vm',
+            }, {
+                name: 'exe',
+                data: [{{ data.VmExe }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.3,
+                stack: 'vm',
+            },  {
+                name: 'rss',
+                data: [{{ data.VmRSS }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.1,
+                stack: 'rss',
+            }, {
+                name: 'pte',
+                data: [{{ data.VmPTE }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: -0.1,
+                stack: 'rss',
+            },{
+                name: 'swap',
+                data: [{{ data.VmSwap }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: 0.1,
+                stack: 'swap',
+            },{
+                name: 'lock',
+                data: [{{ data.VmLck }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: 0.3,
+                stack: 'lock',
+            },{
+                name: 'pin',
+                data: [{{ data.VmPin }}],
+                tooltip: {
+                    valueSuffix: ' kB'
+                },
+                pointPadding: 0.4,
+                pointPlacement: 0.5,
+                stack: 'pin',
+            },{
+                type: 'pie',
+                name: 'rss',
+                data: [{
+                    name: '文件页',
+                    y: {{ data.RssFile }},
+                    color: Highcharts.getOptions().colors[11] 
+                }, {
+                    name: '匿名页',
+                    y: {{ data.VmRSS - data.RssFile }},
+                    color: Highcharts.getOptions().colors[12]
+                }],
+                center: ["40%", "10%"],
+                size: 100,
+                showInLegend: false,
+                dataLabels: {
+                    enabled: false
+                }
+            }]
+    });
+    
+        var chart_cpu = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'pidcputime',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程运行时间监控'
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: 'jiffies'
+                    },
+                    min: 0,
+                    allowDecimals: false,
+            },
+            plotOptions: {
+                area: {
+                        stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false 
+                        } 
+                }, 
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'user',
+                    data: create_data(100),
+                    stack: 'cpu'
+            },
+            {
+                    name: 'system',
+                    data: create_data(100),
+                    stack: 'cpu'
+            }]
+    });
+</script>
+{% endblock %}

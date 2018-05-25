@@ -1,0 +1,250 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <!-- Don't forget the "|safe"! -->
+    <div class="container">
+      <!-- Example row of columns -->
+      <div id="loadavg" style="min-width:400px;height:400px"></div>
+      <div id="stat" style="min-width:400px;height:400px"></div>
+      <!--<div class="row">
+        <div class="col-md-12">
+          <h2>Base uri</h2>
+          <div class="charta">
+             <embed id="chart1" type="image/svg+xml" src= {{ chart|safe }} />
+          </div>
+        </div>    
+        <div class="col-md-12">
+          <h2>img</h2>
+          <div class="charta">
+          <figure>
+              <embed id="chart2" type="image/svg+xml" src='/static/loadavg.svg?t=1'/>
+          </figure>
+          </div>
+        </div>-->
+      </div>
+        <label id="toupdate" class="btn btn-success">暂存</label>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+            {
+                data : 'loadavg',
+                id  : null,
+            },
+            function(data,status){
+                if(status == "success")
+                {
+                    if(data.loadavg)
+                    {
+                        var series = chart.series;
+                        activeLastPointToolip(chart);
+                        var x = (new Date()).getTime(), // 当前时间
+                        y = data.loadavg[0];
+                        series[0].addPoint([x, y], false, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
+                        y = data.loadavg[1];
+                        series[1].addPoint([x, y], false, true);
+                        y = data.loadavg[2];
+                        series[2].addPoint([x, y], false, true);
+                        chart.redraw()
+                        activeLastPointToolip(chart);
+                        //document.getElementById("chart1").src=data.src;
+                        //document.getElementById("chart2").src="/static/loadavg.svg?t=" + Date();
+                    }
+                    if(data.stat)
+                    {
+                        var series = chart_stat.series;
+                        activeLastPointToolip(chart_stat);
+                        var x = (new Date()).getTime(), // 当前时间
+                        y = data.stat[0];
+                        series[0].addPoint([x, y], false, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
+                        y = data.stat[1];
+                        series[1].addPoint([x, y], false, true);
+                        y = data.stat[2];
+                        series[2].addPoint([x, y], false, true);
+                        y = data.stat[4];
+                        series[3].addPoint([x, y], false, true);
+                        y = data.stat[5];
+                        series[4].addPoint([x, y], false, true);
+                        y = data.stat[6];
+                        series[5].addPoint([x, y], false, true);
+                        y = data.stat[7];
+                        series[6].addPoint([x, y], false, true);
+                        chart_stat.redraw()
+                        activeLastPointToolip(chart_stat);
+                    }
+                }
+        });
+    }
+
+    function create_data(len) {
+        // 生成初始化空值
+        var data = [],time = (new Date()).getTime(),i;
+        for (i = -len; i <= 0; i += 1) {
+                data.push({
+                        x: time + i * 1000,
+                        y: 0 //Math.random()
+                });
+        }
+        return data;
+    }
+    
+            
+    $("#toupdate").click(function(){
+        autoupdate();
+    });
+    
+
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+    function activeLastPointToolip(chart) {
+            var points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length -1]);
+    }
+    
+    var chart = new Highcharts.Chart({
+            chart: {
+                    type: 'spline',
+                    renderTo: 'loadavg',
+                    marginRight: 10,
+                    events: {
+                            load: function () {
+                                setInterval(autoupdate,1000); 
+                            }
+                    }
+            },
+            title: {
+                    text: 'loadavg'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '负载'
+                    },
+                    min: 0,
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: '1分钟',
+                    data: create_data(20)
+            },
+            {
+                    name: '5分钟',
+                    data: create_data(20)
+            },
+            {
+                    name: '15分钟',
+                    data: create_data(20)
+            }]
+    });
+    
+    var chart_stat = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'stat',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'CPU利用率'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '占用率'
+                    },
+                    min: 0,
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                }
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'user',
+                    data: create_data(20)
+            },
+            {
+                    name: 'nice',
+                    data: create_data(20)
+            },
+            {
+                    name: 'system',
+                    data: create_data(20)
+            },
+            {
+                    name: 'iowait',
+                    data: create_data(20)
+            },
+            {
+                    name: 'irq',
+                    data: create_data(20)
+            },
+            {
+                    name: 'softirq',
+                    data: create_data(20)
+            },
+            {
+                    name: 'steal',
+                    data: create_data(20)
+            }]
+    });
+</script>
+{% endblock %}

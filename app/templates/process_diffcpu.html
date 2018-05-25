@@ -1,0 +1,100 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <h1 class="page-header">CPU使用</h1>
+    <div class="container">
+      <div id="pidtreemapdiff" style="min-width:400px;height:400px"></div>
+      <div  align="center">
+      <a class="btn btn-success" href="/process_diffcpu">刷新</a>
+      </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+    function activeLastPointToolip(chart) {
+            var points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length -1]);
+    }
+    
+
+    var chart_pidtreemapdiff = new Highcharts.Chart({
+            chart: {
+                    renderTo: 'pidtreemapdiff',
+            },
+            title: {
+                    text: '进程当前运行时间分布'
+            },            
+            credits: {  
+              enabled:false  
+            },  
+    series: [{
+            type: "treemap",
+            layoutAlgorithm: 'squarified',
+            allowDrillToNode: true,
+            levelIsConstant: false,
+            levels: [{
+                    level: 1,
+                    layoutAlgorithm: 'strip',
+                    dataLabels: {
+                            enabled: true,
+                            align: 'left',
+                            verticalAlign: 'top',
+                            style: {
+                                    fontSize: '15px',
+                                    fontWeight: 'bold'
+                            }
+                    }
+            }],
+            data: [{
+                    id: 'RR',
+                    name: 'rr',
+                    color: "#2980b9"
+            }, {
+                    id: 'FIFO',
+                    name: 'fifo',
+                    color: "#9229b9"
+            }, {
+                    id: 'NORMAL',
+                    name: 'normal',
+                    color: '#3229b9'
+            }, {
+                    id: 'BATCH',
+                    name: 'batch',
+                    color: '#b92980'
+            }, {
+                    id: 'IDLE',
+                    name: 'idle',
+                    color: '#80b929'
+            }, 
+            {% for val in data %}
+            {
+                    name: '{{ val[0] }}',
+                    {% if val[1] == '0' %}
+                        parent: 'NORMAL',
+                    {% elif val[1] == '1' %}
+                        parent: 'FIFO',
+                    {% elif val[1] == '2' %}
+                        parent: 'RR',
+                    {% elif val[1] == '3' %}
+                        parent: 'BATCH',
+                    {% elif val[1] == '5' %}
+                        parent: 'IDLE',
+                    {% endif %}
+                    value:{{ val[2] }}
+            },
+            {% endfor %}
+            ]
+        }]
+    });
+
+</script>
+{% endblock %}

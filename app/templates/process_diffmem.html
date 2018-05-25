@@ -1,0 +1,82 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <h1 class="page-header">CPU使用</h1>
+    <div class="container">
+      <div id="pidtreemapdiff" style="min-width:400px;height:400px"></div>
+      <div  align="center">
+      <a class="btn btn-success" href="/process_diffmem">刷新</a>
+      </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+    function activeLastPointToolip(chart) {
+            var points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length -1]);
+    }
+    
+
+    var chart_pidtreemapdiff = new Highcharts.Chart({
+            chart: {
+                    renderTo: 'pidtreemapdiff',
+            },
+            title: {
+                    text: '进程使用内存变化'
+            },
+            credits: {
+              enabled:false
+            },
+    series: [{
+            type: "treemap",
+            layoutAlgorithm: 'squarified',
+            allowDrillToNode: true,
+            levelIsConstant: false,
+            levels: [{
+                    level: 1,
+                    layoutAlgorithm: 'strip',
+                    dataLabels: {
+                            enabled: true,
+                            align: 'left',
+                            verticalAlign: 'top',
+                            style: {
+                                    fontSize: '15px',
+                                    fontWeight: 'bold'
+                            }
+                    }
+            }],
+            data: [{
+                    id: 'GROW',
+                    name: 'grow',
+                    color: "#2980b9"
+            }, {
+                    id: 'DOWN',
+                    name: 'down',
+                    color: "#9229b9"
+            }, 
+            {% for val in data %}
+            {
+                    name: '{{ val[0] }}',
+                    {% if val[1] == 1 %}
+                        parent: 'GROW',
+                    {% elif val[1] == 0 %}
+                        parent: 'DOWN',
+                    {% endif %}
+                    value:{{ val[2] }}
+            },
+            {% endfor %}
+            ]
+        }]
+    });
+
+</script>
+{% endblock %}
