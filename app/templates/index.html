@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}ZTracer{% endblock %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block content %}
     <div class="container">
@@ -83,7 +83,7 @@
                     if(data.softirq)
                     {
                         var series = chart_softirq.series;
-                        activeLastPointToolip(chart_softirq);
+                        //activeLastPointToolip(chart_softirq);
                         var x = data.softirq[0], 
                         y = data.softirq[1][1];
                         series[0].addPoint([x, y], false, true);
@@ -106,7 +106,7 @@
                         y = data.softirq[1][10];
                         series[9].addPoint([x, y], false, true);
                         chart_softirq.redraw();
-                        activeLastPointToolip(chart_softirq);
+                        //activeLastPointToolip(chart_softirq);
                     }
 
                     if(data.ctxt)
@@ -194,6 +194,13 @@
                     x: 90,
                     y: 45,
             },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
             credits: {  
               enabled:false  
             },  
@@ -255,7 +262,12 @@
                     shadow: false,
                     borderWidth: 0,
                     stacking: 'normal'
-                }
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
             },
             credits: {  
               enabled:false  
@@ -333,7 +345,12 @@
                     shadow: false,
                     borderWidth: 0,
                     stacking: 'normal'
-                }
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
             },
             credits: {  
               enabled:false  
@@ -388,7 +405,12 @@
                     shadow: false,
                     borderWidth: 0,
                     stacking: 'normal'
-                }
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
             },
             credits: {  
               enabled:false  
@@ -472,12 +494,19 @@
                     x: 90,
                     y: 45,
             },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
             credits: {  
               enabled:false  
             },  
             series: [{
                     name: 'ctxt',
-                    data: {{ loadavg.getline('ctxt') }}
+                    data: {{ stat.getline('ctxt') }}
             }]
     });
 
@@ -518,12 +547,19 @@
                     x: 90,
                     y: 45,
             },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
             credits: {  
               enabled:false  
             },  
             series: [{
                     name: 'fork',
-                    data: {{ loadavg.getline('fork') }}
+                    data: {{ stat.getline('fork') }}
             }]
     });
     
@@ -564,16 +600,23 @@
                     x: 90,
                     y: 45,
             },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
             credits: {  
               enabled:false  
             },  
             series: [{
                     name: 'run',
-                    data: {{ loadavg.getline('run') }}
+                    data: {{ stat.getline('run') }}
             },
             {
                     name: 'blocked',
-                    data:  {{ loadavg.getline('blocked') }}
+                    data:  {{ stat.getline('blocked') }}
             }]
     });
 </script>

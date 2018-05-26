@@ -1,0 +1,169 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <div class="container">
+      {% if cpunum > 2 %}
+          {% for i in range(cpunum) %}
+            <div class="col-md-6">
+                <div id="cpu{{i}}" style="height:300px"></div>
+            </div>
+          {% endfor %}
+      {% else %}
+          {% for i in range(cpunum) %}
+          <hr/>
+          <div id="cpu{{i}}" style="min-width:400px;height:300px"></div>
+          {% endfor %}
+      {% endif %}
+      </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+        {
+            data : 'softirqs',
+            id  : null,
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.softirqs)
+                {
+                    for(i=0;i<{{ cpunum }};i++)
+                    {
+                        var series = chart_cpu[i].series;
+                        var x = data.softirqs[i][0], 
+                        y = data.softirqs[i][1][0];
+                        series[0].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][1];
+                        series[1].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][2];
+                        series[2].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][3];
+                        series[3].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][4];
+                        series[4].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][5];
+                        series[5].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][6];
+                        series[6].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][7];
+                        series[7].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][8];
+                        series[8].addPoint([x, y], false, true);
+                        y = data.softirqs[i][1][9];
+                        series[9].addPoint([x, y], false, true);
+                        chart_cpu[i].redraw();
+                    }
+                }
+            }
+        });
+    }
+
+    setInterval(autoupdate,1000);
+    var cpunum = {{ cpunum }};
+    var chart_cpu=new Array();
+    
+    {% for i in range(cpunum) %}
+        chart_cpu[{{i}}] = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'cpu{{i}}',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'cpu{{i}}:softirq'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    min: 0,
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'hi',
+                    data: {{ softirqs.getline('s_hi',i) }}
+            },
+            {
+                    name: 'timer',
+                    data: {{ softirqs.getline('s_timer',i) }}
+            },
+            {
+                    name: 'net_tx',
+                    data: {{ softirqs.getline('s_net_tx',i) }}
+            },
+            {
+                    name: 'net_rx',
+                    data: {{ softirqs.getline('s_net_rx',i) }}
+            },
+            {
+                    name: 'block',
+                    data: {{ softirqs.getline('s_block',i) }}
+            },
+            {
+                    name: 'block_iopoll',
+                    data: {{ softirqs.getline('s_block_iopoll',i) }}
+            },
+            {
+                    name: 'tasklet',
+                    data: {{ softirqs.getline('s_tasklet',i) }}
+            },
+            {
+                    name: 'sched',
+                    data: {{ softirqs.getline('s_sched',i) }}
+            },
+            {
+                    name: 'hrtimer',
+                    data: {{ softirqs.getline('s_hrtimer',i) }}
+            },
+            {
+                    name: 'rcu',
+                    data: {{ softirqs.getline('s_rcu',i) }}
+            }]
+        });
+    {% endfor %}
+</script>
+{% endblock %}

@@ -30,6 +30,10 @@ def index():
 def cpu():
     return render_template('cpu_base.html')
 
+@main.route('/cpus', methods=['GET', 'POST'])
+def cpus():
+    return render_template('cpus.html',stat = current_app.g_stat)
+
 @main.route('/loadavg', methods=['GET', 'POST'])
 def loadavg():
     chart= g_loadavg.draw()
@@ -39,6 +43,10 @@ def loadavg():
 def update_loadavg():
     chart= g_loadavg.draw()
     return jsonify({'result':'ok','src':chart})
+
+@main.route('/softirqs', methods=['GET', 'POST'])
+def softirqs():
+    return render_template('softirqs.html',cpunum = current_app.g_cpunum,softirqs = current_app.g_softirqs)
 
 @main.route('/process', methods=['GET', 'POST'])
 def process():
@@ -145,5 +153,18 @@ def update_all():
             misc = current_app.g_stat.getlast('misc')
             softirq = current_app.g_stat.getlast('s_softirq')
             irq = current_app.g_stat.getlast('h_irq')
-            print(softirq)
         return jsonify({'result':'ok','loadavg':ret,'stat':diff,'ctxt':misc, 'softirq':softirq, 'intr':irq})
+
+    if data == 'percpu':
+        ret = {}
+        if hasattr(current_app,'g_stat'):
+            for i in range(current_app.g_stat.data[-1].cpunum):
+                ret[i] = current_app.g_stat.getlast('utilization',i+1)
+        return jsonify({'result':'ok','percpu':ret})
+
+    if data == 'softirqs':
+        ret = {}
+        if hasattr(current_app,'g_softirqs'):
+            for i in range(current_app.g_softirqs.data[-1].cpunum):
+                ret[i] = current_app.g_softirqs.getlast('s_softirq',i)
+        return jsonify({'result':'ok','softirqs':ret})

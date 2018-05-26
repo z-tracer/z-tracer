@@ -1,0 +1,152 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <div class="container">
+      {% if stat.data[-1].cpunum > 2 %}
+          {% for i in range(stat.data[-1].cpunum) %}
+            <div class="col-md-6">
+                <div id="cpu{{i}}" style="height:300px"></div>
+            </div>
+          {% endfor %}
+      {% else %}
+          {% for i in range(stat.data[-1].cpunum) %}
+          <hr/>
+          <div id="cpu{{i}}" style="min-width:400px;height:300px"></div>
+          {% endfor %}
+      {% endif %}
+      </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+        {
+            data : 'percpu',
+            id  : null,
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.percpu)
+                {
+                    for(i=0;i<{{ stat.data[-1].cpunum }};i++)
+                    {
+                        var series = chart_cpu[i].series;
+                        var x = data.percpu[i][0], 
+                        y = data.percpu[i][1][0];
+                        series[0].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][1];
+                        series[1].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][2];
+                        series[2].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][4];
+                        series[3].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][5];
+                        series[4].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][6];
+                        series[5].addPoint([x, y], false, true);
+                        y = data.percpu[i][1][7];
+                        series[6].addPoint([x, y], false, true);
+                        chart_cpu[i].redraw();
+                    }
+                }
+            }
+        });
+    }
+
+    setInterval(autoupdate,1000);
+    var cpunum = {{ stat.data[-1].cpunum }};
+    var chart_cpu=new Array();
+    
+    {% for i in range(stat.data[-1].cpunum) %}
+    chart_cpu[{{i}}] = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'cpu{{i}}',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'CPU{{i}}利用率'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '占用率'
+                    },
+                    min: 0,
+                    max:100,
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'user',
+                    data: {{ stat.getline('user',i+1) }}
+            },
+            {
+                    name: 'nice',
+                    data: {{ stat.getline('nice',i+1) }}
+            },
+            {
+                    name: 'system',
+                    data: {{ stat.getline('system',i+1) }}
+            },
+            {
+                    name: 'iowait',
+                    data: {{ stat.getline('iowait',i+1) }}
+            },
+            {
+                    name: 'irq',
+                    data: {{ stat.getline('irq',i+1) }}
+            },
+            {
+                    name: 'softirq',
+                    data: {{ stat.getline('softirq',i+1) }}
+            },
+            {
+                    name: 'steal',
+                    data: {{ stat.getline('steal',i+1) }}
+            }]
+        });
+    {% endfor %}
+</script>
+{% endblock %}
