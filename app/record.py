@@ -408,6 +408,70 @@ class Softirqs():
                 self.diffsoftirq[7][num],self.diffsoftirq[8][num],self.diffsoftirq[9][num]]
         return 0
 
+class irq():
+    def __init__(self, **kwargs):
+        self.irqnum = ''
+        self.data = []
+        self.picname = ''
+        self.irqname = ''
+        self.edge = ''
+        self.affinity = 0
+
+class Interrupts():
+    def __init__(self, **kwargs):
+        self.interrupts = []
+        self.diffirq = {}
+        self.time = 0
+        self.cpunum = 0
+    
+    def update(self):
+        self.time = int(time.time() * 1000)
+        data = get_procinfo('/proc/interrupts')
+        if data == None:
+            return
+        data = data.split('\n')
+        #calc cpu num
+        line = data[0].split(' ')
+        while '' in line:
+            line.remove('')
+        self.cpunum = len(line)
+        #delt data
+        self.interrupts = []
+        for line in data[1:]:
+            line = line.split(' ')
+            while '' in line:
+                line.remove('')
+            if line:
+                irqnum = line[0].replace(':','')
+                data = list(map(int, line[1:self.cpunum+1]))
+                if irqnum.isdigit():
+                    picname = line[self.cpunum+1]
+                    edge = line[self.cpunum+2]
+                    irqname = ''.join(line[self.cpunum+3:])
+                    self.interrupts.append({'irqnum':irqnum,'data':data,'picname':picname,'edge':edge,'irqname':irqname})
+                else:
+                    irqname = ''.join(line[self.cpunum+1:])
+                    self.interrupts.append({'irqnum':irqnum,'data':data,'irqname':irqname})
+   
+    def diff(self,oldstat):
+        if oldstat.cpunum != 0:
+            #softirq
+            self.diffirq={}
+            for interrupt in self.interrupts:
+                irqnum = interrupt['irqnum']
+                if irqnum.isdigit():
+                    for oldinterrupt in oldstat.interrupts:
+                        if irqnum == oldinterrupt['irqnum']:
+                            tmp = []
+                            for i in range(self.cpunum):
+                                summm=interrupt['data'][i] - oldinterrupt['data'][i]
+                                tmp.append(summm) 
+                            self.diffirq[irqnum] = tmp
+            print(self.diffirq)
+
+
+    def getdata(self,name,num=0):
+        return 0
 
 class Process():
     def __init__(self, **kwargs):
@@ -584,7 +648,7 @@ class ScanTimer():
             newstat.diff(current_app.g_stat.data[-1])
         current_app.g_stat.add(newstat)
         
-        #softirq
+        #softirqs
         if not hasattr(current_app,'g_softirqs'):
             current_app.g_softirqs = RecordDate()
         newsoftirqs = Softirqs()
@@ -592,5 +656,14 @@ class ScanTimer():
         if len(current_app.g_softirqs.data) > 0:
             newsoftirqs.diff(current_app.g_softirqs.data[-1])
         current_app.g_softirqs.add(newsoftirqs)
-
+        
+        #interrupts
+        if not hasattr(current_app,'g_interrupts'):
+            current_app.g_interrupts = RecordDate()
+        newinterrupts = Interrupts()
+        newinterrupts.update()
+        if len(current_app.g_interrupts.data) > 0:
+            newinterrupts.diff(current_app.g_interrupts.data[-1])
+        current_app.g_interrupts.add(newinterrupts)
+        
         ctx.pop() 
