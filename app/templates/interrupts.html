@@ -1,0 +1,125 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <div class="container">
+      {% if cpunum > 2 %}
+          {% for i in range(cpunum) %}
+            <div class="col-md-6">
+                <div id="cpu{{i}}" style="height:300px"></div>
+            </div>
+          {% endfor %}
+      {% else %}
+          {% for i in range(cpunum) %}
+          <hr/>
+          <div id="cpu{{i}}" style="min-width:400px;height:300px"></div>
+          {% endfor %}
+      {% endif %}
+      </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+        {
+            data : 'interrupts',
+            id  : null,
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.interrupts)
+                {
+                    var x = data.interrupts[0];
+                    for(var irqnum in data.interrupts[1])
+                    {
+                        for(i=0;i<{{ cpunum }};i++)
+                        {
+                            for(j=0;j<{{ interrupts.data[-1].irqnum }};j++)
+                            {
+                                if(chart_cpu[0].series[j].name == irqnum)
+                                {
+                                    var series = chart_cpu[i].series;
+                                    var y = data.interrupts[1][irqnum][i];
+                                    series[j].addPoint([x, y], false, true);
+                                }
+                            }
+                        }
+                    }
+                    for(i=0;i<{{ cpunum }};i++)
+                    {
+                        chart_cpu[i].redraw();
+                    }
+                }
+            }
+        });
+    }
+
+    setInterval(autoupdate,1000);
+    var cpunum = {{ cpunum }};
+    var chart_cpu=new Array();
+    
+    {% for i in range(cpunum) %}
+        chart_cpu[{{i}}] = new Highcharts.Chart({
+            chart: {
+                    type: 'spline',
+                    renderTo: 'cpu{{i}}',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'cpu{{i}}:interrupt'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    min: 0,
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [
+            {% for key in interrupts.data[-1].diffirq %}
+            {
+                    name: '{{ key }}',
+                    data: {{ interrupts.getline(key,i) }}
+            },
+            {% endfor %}
+            ]
+    });
+    {% endfor %}
+</script>
+{% endblock %}

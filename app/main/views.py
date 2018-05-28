@@ -48,6 +48,10 @@ def update_loadavg():
 def softirqs():
     return render_template('softirqs.html',cpunum = current_app.g_cpunum,softirqs = current_app.g_softirqs)
 
+@main.route('/interrupts', methods=['GET', 'POST'])
+def interrupts():
+    return render_template('interrupts.html',cpunum = current_app.g_cpunum,interrupts = current_app.g_interrupts)
+
 @main.route('/process', methods=['GET', 'POST'])
 def process():
     pslist = {}
@@ -168,3 +172,10 @@ def update_all():
             for i in range(current_app.g_softirqs.data[-1].cpunum):
                 ret[i] = current_app.g_softirqs.getlast('s_softirq',i)
         return jsonify({'result':'ok','softirqs':ret})
+
+    if data == 'interrupts':
+        ret = []
+        if hasattr(current_app,'g_interrupts'):
+            ret = current_app.g_interrupts.getlast('interrupts')
+            print(ret)
+        return jsonify({'result':'ok','interrupts':ret})

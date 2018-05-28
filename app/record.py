@@ -423,6 +423,7 @@ class Interrupts():
         self.diffirq = {}
         self.time = 0
         self.cpunum = 0
+        self.irqnum = 0
     
     def update(self):
         self.time = int(time.time() * 1000)
@@ -437,6 +438,7 @@ class Interrupts():
         self.cpunum = len(line)
         #delt data
         self.interrupts = []
+        self.irqnum = 0
         for line in data[1:]:
             line = line.split(' ')
             while '' in line:
@@ -445,6 +447,7 @@ class Interrupts():
                 irqnum = line[0].replace(':','')
                 data = list(map(int, line[1:self.cpunum+1]))
                 if irqnum.isdigit():
+                    self.irqnum += 1
                     picname = line[self.cpunum+1]
                     edge = line[self.cpunum+2]
                     irqname = ''.join(line[self.cpunum+3:])
@@ -467,10 +470,16 @@ class Interrupts():
                                 summm=interrupt['data'][i] - oldinterrupt['data'][i]
                                 tmp.append(summm) 
                             self.diffirq[irqnum] = tmp
-            print(self.diffirq)
+            #print(self.diffirq)
 
 
     def getdata(self,name,num=0):
+        if len(self.diffirq) > 0 :
+            if name.isdigit() :
+                return self.diffirq[name][num]
+            elif name == 'interrupts':
+                return self.diffirq
+
         return 0
 
 class Process():
@@ -665,5 +674,5 @@ class ScanTimer():
         if len(current_app.g_interrupts.data) > 0:
             newinterrupts.diff(current_app.g_interrupts.data[-1])
         current_app.g_interrupts.add(newinterrupts)
-        
+
         ctx.pop() 
