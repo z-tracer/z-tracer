@@ -1,0 +1,635 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <div class="container">
+      <div id="cpuall" style="min-width:400px;height:300px"></div>
+      {% if cpunum > 2 %}
+          {% for i in range(cpunum) %}
+            <div class="col-md-6">
+                <div id="cpu{{i}}" style="height:300px"></div>
+            </div>
+          {% endfor %}
+      {% else %}
+          {% for i in range(cpunum) %}
+          <hr/>
+          <div id="cpu{{i}}" style="min-width:400px;height:300px"></div>
+          {% endfor %}
+      {% endif %}
+      </div>
+      <div id="mem" style="min-width:400px;height:300px"></div>
+      <div id="ctxt" style="min-width:400px;height:300px"></div>
+      <div id="nctxt" style="min-width:400px;height:300px"></div>
+      <div id="minor" style="min-width:400px;height:300px"></div>
+      <div id="major" style="min-width:400px;height:300px"></div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript">
+    function autoupdate(){
+        $.post("/update/all",
+        {
+            data : 'processes',
+            id  : null,
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                var x
+                if(data.time)
+                    x = data.time
+
+                if(data.process)
+                {
+                    for(var pid in data.process)
+                    {
+                        for( var addseries of chart_cpuall.series)
+                        {
+                            if (addseries.name == pid+'('+data.process[pid][2]+')' )
+                                break;
+                        }
+
+                        if(!addseries || addseries.name != pid+'('+data.process[pid][2]+')' )
+                        {
+                            var newseries=new Array();
+                            newseries.name = pid+'('+data.process[pid][2]+')';
+                            newseries.data = create_data(120,x); 
+                            chart_cpuall.addSeries(newseries);  
+                        }
+                    }
+
+                    for( var index in chart_cpuall.series)
+                    {
+                        var found = 0
+                        for(var pid in data.process)
+                        {
+                            var cpu = data.process[pid][1]
+                            var per = data.process[pid][0]
+                            if (chart_cpuall.series[index].name == pid+'('+data.process[pid][2]+')' )
+                            {
+                                chart_cpuall.series[index].addPoint([x, per], false, true);
+                                pid_lastupdate[index] = x
+                                found = 1;
+                                break;
+                            }
+                        }
+
+                        if(found == 0)
+                        {
+                            if(x - pid_lastupdate[index] > 120 * 1000)
+                            {
+                                chart_cpuall.series[index].remove();
+                                for(cpuidx =0 ; cpuidx < {{ cpunum }}; cpuidx++)
+                                {
+                                    if(chart_cpu[cpuidx].series[index])
+                                        chart_cpu[cpuidx].series[index].remove();
+                                }
+                            }
+                            else
+                                chart_cpuall.series[index].addPoint([x, 0], false, true);
+                        }
+                    }
+                    chart_cpuall.redraw();
+
+                    //采用分cpu的方式会导致显示的进程离散
+                    for(var pid in data.process)
+                    {
+                        var cpu = data.process[pid][1]
+                        var per = data.process[pid][0]
+                        for( var addseries of chart_cpu[cpu].series)
+                        {
+                            if (addseries.name == pid+'('+data.process[pid][2]+')' )
+                                break;
+                        }
+
+                        if(!addseries || addseries.name != pid+'('+data.process[pid][2]+')' )
+                        {
+                            var newseries=new Array();
+                            newseries.name = pid+'('+data.process[pid][2]+')';
+                            for( var ss of chart_cpuall.series)
+                            {
+                                if (ss.name == pid+'('+data.process[pid][2]+')' )
+                                {
+                                    newseries.color = ss.color;
+                                    break;
+                                }
+                            }
+                            newseries.data = create_data(120,x); 
+                            chart_cpu[cpu].addSeries(newseries);  
+                        }
+                    }
+
+                    for(cpuidx =0 ; cpuidx < {{ cpunum }}; cpuidx++)
+                    {
+                        for( var series of chart_cpu[cpuidx].series)
+                        {
+                            var found = 0
+                            for(var pid in data.process)
+                            {
+                                var cpu = data.process[pid][1]
+                                var per = data.process[pid][0]
+                                if(cpu == cpuidx)
+                                {
+                                    if (series.name == pid +'('+data.process[pid][2]+')' )
+                                    {
+                                        series.addPoint([x, per], false, true);
+                                        found = 1;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if(found == 0)
+                                series.addPoint([x, 0], false, true);
+                        }
+                        chart_cpu[cpuidx].redraw();
+                    }
+                }
+
+                if(data.minor)
+                    draw_monior(x,data.minor,chart_minor,minor_lastupdate,null);
+
+                if(data.major)
+                    draw_monior(x,data.major,chart_major,major_lastupdate,null);
+
+                if(data.ctxt)
+                    draw_monior(x,data.ctxt,chart_ctxt,ctxt_lastupdate,null);
+
+                if(data.nctxt)
+                    draw_monior(x,data.nctxt,chart_nctxt,nctxt_lastupdate,null);
+                
+                if(data.mem)
+                    draw_monior(x,data.mem,chart_mem,mem_lastupdate,mem_lastmem);
+            }
+        });
+    }
+
+
+    function draw_monior(x,data,chart,lastupdate,mem_lastmem)
+    {
+        for(var pid in data)
+        {
+            for( var addseries of chart.series)
+            {
+                if (addseries.name == pid+'('+data[pid][1]+')' )
+                    break;
+            }
+
+            if(!addseries || addseries.name != pid+'('+data[pid][1]+')' )
+            {
+                var newseries=new Array();
+                newseries.name = pid+'('+data[pid][1]+')';
+                newseries.data = create_data(120,x); 
+                chart.addSeries(newseries);  
+            }
+        }
+
+        for( var index in chart.series)
+        {
+            var found = 0
+            for(var pid in data)
+            {
+                var val = data[pid][0]
+                if (chart.series[index].name == pid+'('+data[pid][1]+')' )
+                {
+                    chart.series[index].addPoint([x, val], false, true);
+                    lastupdate[index] = x
+                    found = 1;
+                    if(mem_lastmem)
+                        mem_lastmem[index] = val
+                    break;
+                }
+            }
+
+            if(found == 0)
+            {
+                if(x - lastupdate[index] > 120 * 1000)
+                    chart.series[index].remove();
+                else
+                {
+                    if(mem_lastmem)
+                        chart.series[index].addPoint([x, mem_lastmem[index]], false, true);
+                    else
+                        chart.series[index].addPoint([x, 0], false, true);
+                }
+            }
+        }
+        chart.redraw();
+    }
+
+    setInterval(autoupdate,1000);
+    var chart_cpu=new Array();
+    var pid_lastupdate = new Array();
+    var mem_lastupdate = new Array();
+    var major_lastupdate = new Array();
+    var minor_lastupdate = new Array();
+    var ctxt_lastupdate = new Array();
+    var nctxt_lastupdate = new Array();
+    var mem_lastmem = new Array();
+
+    function create_data(len,x) {
+        // 生成初始化空值
+        var data = [],time = x,i;
+        for (i = -len; i <= 0; i += 1) {
+                data.push({
+                        x: time,
+                        y: 0 //Math.random()
+                });
+        }
+        return data;
+    }
+
+    Highcharts.setOptions({
+            global: {
+                    useUTC: false
+            }
+    });
+
+    chart_cpuall = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'cpuall',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程占用cpu统计'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '占用率'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+                    max:{{100*cpunum}}
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}%</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+
+    {% for i in range(cpunum) %}
+    chart_cpu[{{i}}] = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'cpu{{i}}',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'CPU{{i}}进程'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '占用率'
+                    },
+                    min: 0,
+                    max:100,
+                    reversedStacks:false,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}%</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+    {% endfor %}
+
+    chart_mem = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'mem',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程占用内存统计'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '占用率'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+    chart_major = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'major',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程主缺页'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+    chart_minor = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'minor',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程次缺页'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+    chart_ctxt = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'ctxt',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程自愿切换'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+    chart_nctxt = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'nctxt',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程非自愿切换'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
+                    },
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: []
+        });
+
+</script>
+{% endblock %}

@@ -87,6 +87,10 @@ def process_diffmem():
     g_processes.scan()
     return render_template('process_diffmem.html', data=ps)
 
+@main.route('/process_monitor', methods=['GET', 'POST'])
+def process_monitor():
+    return render_template('process_monitor.html', cpunum = current_app.g_cpunum, processes = current_app.g_processes)
+
 @main.route('/process/<int:pid>', methods=['GET', 'POST'])
 def process_pid(pid):
     process_one = Process( pid = pid)
@@ -179,3 +183,18 @@ def update_all():
             ret = current_app.g_interrupts.getlast('interrupts')
             print(ret)
         return jsonify({'result':'ok','interrupts':ret})
+
+    if data == 'processes':
+        ret = []
+        if hasattr(current_app,'g_processes'):
+            ret = {'result':'ok','time':current_app.g_processes.data[-1].time, \
+                'process':current_app.g_processes.data[-1].diffprocess, \
+                'mem':current_app.g_processes.data[-1].diffmem, \
+                'major':current_app.g_processes.data[-1].diffmajor, \
+                'minor':current_app.g_processes.data[-1].diffminor, \
+                'ctxt':current_app.g_processes.data[-1].diffctxt, \
+                'nctxt':current_app.g_processes.data[-1].diffnctxt}
+            print(ret)
+            return jsonify(ret)
+        else:
+            return jsonify({'result':'ok'})

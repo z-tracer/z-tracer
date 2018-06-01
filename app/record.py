@@ -134,6 +134,7 @@ class Stat():
     def __init__(self, **kwargs):
         self.cpunum = 0
         self.cpu = {}
+        self.total_cputime = {}
         self.intr = []
         self.ctxt = 0
         self.btime = 0
@@ -149,6 +150,7 @@ class Stat():
         self.diffsoftirq = []
         self.diffintr = {}
         self.diffpercpu = {}
+        self.difftotal_cputime = {}
 
     def getstat(self):
         self.time = int(time.time() * 1000)
@@ -165,10 +167,16 @@ class Stat():
                 if 'cpu' in line[0]:
                     if line[0] == 'cpu' :
                         self.cpu['all'] = list(map(int, line[1:]))
+                        self.total_cputime['all'] = 0
+                        for i in range(0,8):
+                            self.total_cputime['all'] += self.cpu['all'][i]
                     else:
                         num = int(line[0][3:])
                         self.cpu[num] = list(map(int, line[1:]))
                         self.cpunum +=1
+                        self.total_cputime[num] = 0
+                        for i in range(0,8):
+                            self.total_cputime[num] += self.cpu[num][i]
                 elif 'intr' in line[0]:
                     self.intr = list(map(int, line[1:]))
                 elif 'softirq' in line[0]:
@@ -202,6 +210,8 @@ class Stat():
                         round(diff_iowait*100/sum,2),round(diff_irq*100/sum,2),\
                         round(diff_softirq*100/sum,2),round(diff_steal*100/sum,2)]
                 #print(self.diffcpu)
+            self.difftotal_cputime['all'] =  self.total_cputime['all'] - oldstat.total_cputime['all']
+
             #percpu
             for i in range(self.cpunum):
                 diff_user = self.cpu[i][0] - oldstat.cpu[i][0]
@@ -219,6 +229,8 @@ class Stat():
                             round(diff_iowait*100/sum,2),round(diff_irq*100/sum,2),\
                             round(diff_softirq*100/sum,2),round(diff_steal*100/sum,2)]
                     #print(self.diffpercpu[i])
+                self.difftotal_cputime[i] =  self.total_cputime[i] - oldstat.total_cputime[i]
+
             #misc
             self.diffctxt = self.ctxt - oldstat.ctxt
             self.diffprocesses = self.processes - oldstat.processes
@@ -496,10 +508,18 @@ class Process():
         self.utime = 0
         self.stime = 0
         self.cputime = 0
+        self.time = 0
+        self.runcpu = 0
+        self.comm = ''
+        self.major = 0
+        self.minor = 0
+        self.ctxt = 0
+        self.nctxt = 0
         if kwargs:
             self.pid = kwargs['pid']
     
     def getstat(self):
+        self.time = int(time.time() * 1000)
         data = get_procinfo('/proc/%d/stat' % (self.pid))
         if data == None:
             return 
@@ -514,6 +534,10 @@ class Process():
         self.utime = int(self.stat[13])
         self.stime = int(self.stat[14])
         self.cputime = self.utime + self.stime
+        self.runcpu = int(self.stat[38])
+        self.comm = self.stat[1]
+        self.major = int(self.stat[11])
+        self.minor = int(self.stat[9])
         #self.cputime = pow(self.cputime, 1/3)
         return self.stat
 
@@ -559,6 +583,10 @@ class Process():
                     self.VmPTE = int(self.status['VmPTE'].replace('kB',''))
                 elif line[0] == 'VmSwap':
                     self.VmSwap = int(self.status['VmSwap'].replace('kB',''))
+                elif line[0] == 'voluntary_ctxt_switches':
+                    self.ctxt = int(self.status['voluntary_ctxt_switches'])
+                elif line[0] == 'nonvoluntary_ctxt_switches':
+                    self.nctxt = int(self.status['nonvoluntary_ctxt_switches'])
         if self.VmPeak:
             return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime]
 
@@ -586,14 +614,23 @@ class Processes():
         self.pidcnt = 0
         self.process_dict = {}
         self.ordered = []
+        self.diffcpu = {}
+        self.diffprocess = {}
+        self.diffmem = {}
+        self.diffmajor = {}
+        self.diffminor = {}
+        self.diffctxt = {}
+        self.diffnctxt = {}
+        self.time = 0
         if kwargs:
             pass
 
     def scan(self):
+        self.time = int(time.time() * 1000)
         self.pidcnt = 0
         outputs = get_cmdout('ls /proc/') 
         lists = outputs.split('\n')
-        print(lists)
+        #print(lists)
         for list in lists:
             if list.isdigit():
                 process = Process(pid = int(list))
@@ -603,8 +640,48 @@ class Processes():
                     process.getstatus()
                     self.process_dict[process.pid] = process
         print("total process %d"%(self.pidcnt))
+        self.stat = Stat()
+        self.stat.getstat()
         return self.process_dict
-        
+
+    def diff(self,oldstat):
+        if oldstat.pidcnt != 0:
+            self.stat.diff(oldstat.stat)
+            self.diffcpu = self.stat.difftotal_cputime
+            print(self.diffcpu)
+            
+            for key in self.process_dict:
+                if key in oldstat.process_dict:
+                    difftime = self.process_dict[key].cputime - oldstat.process_dict[key].cputime
+                    if difftime != 0:
+                        self.diffprocess[key] = [round(difftime*100/self.diffcpu[self.process_dict[key].runcpu],2), self.process_dict[key].runcpu,self.process_dict[key].comm]
+                    diffmaj = self.process_dict[key].major - oldstat.process_dict[key].major
+                    if diffmaj != 0:
+                        self.diffmajor[key] = [diffmaj,self.process_dict[key].comm]
+                    diffminor = self.process_dict[key].minor- oldstat.process_dict[key].minor
+                    if diffminor != 0:
+                        self.diffminor[key] = [diffminor,self.process_dict[key].comm]
+                    diffctxt = self.process_dict[key].ctxt- oldstat.process_dict[key].ctxt
+                    if diffctxt > 10:  #将小于10的过滤掉，否则显示太多
+                        self.diffctxt[key] = [diffctxt,self.process_dict[key].comm]
+                    diffnctxt = self.process_dict[key].nctxt- oldstat.process_dict[key].nctxt
+                    if diffnctxt != 0:
+                        self.diffnctxt[key] = [diffnctxt,self.process_dict[key].comm]
+                    if self.process_dict[key].VmPeak:
+                        diffvss = self.process_dict[key].VmRSS- oldstat.process_dict[key].VmRSS
+                        if diffvss != 0:
+                            self.diffmem[key] = [self.process_dict[key].VmRSS, self.process_dict[key].comm]
+
+            #print(self.diffprocess)
+            #print(self.diffmajor)
+            #print(self.diffminor)
+            #print(self.diffctxt)
+            #print(self.diffnctxt)
+            #print(self.diffmem)
+
+    def getdata(self,name,num=0):
+        return 0
+
     def gengv(self):
         fh = open('app/static/pstree', 'w')
         fh.write("digraph ptree {\n node [ style = filled ];\n")
@@ -674,5 +751,14 @@ class ScanTimer():
         if len(current_app.g_interrupts.data) > 0:
             newinterrupts.diff(current_app.g_interrupts.data[-1])
         current_app.g_interrupts.add(newinterrupts)
+
+        #processes
+        if not hasattr(current_app,'g_processes'):
+            current_app.g_processes = RecordDate()
+        newprocesses = Processes()
+        newprocesses.scan()
+        if len(current_app.g_processes.data) > 0:
+            newprocesses.diff(current_app.g_processes.data[-1])
+        current_app.g_processes.add(newprocesses)
 
         ctx.pop() 
