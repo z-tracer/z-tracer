@@ -4,15 +4,27 @@
 {% block title %}Z-Tracer{% endblock %}
 
 {% block content %}
-    <div class="container">
-      <div id="loadavg" style="min-width:400px;height:300px"></div>
-      <div id="stat" style="min-width:400px;height:300px"></div>
-      <div id="intr" style="min-width:400px;height:300px"></div>
-      <div id="softirq" style="min-width:400px;height:300px"></div>
-      <div id="ctxt" style="min-width:400px;height:300px"></div>
-      <div id="fork" style="min-width:400px;height:300px"></div>
-      <div id="runnblocked" style="min-width:400px;height:300px"></div>
-      <div id="mem" style="min-width:400px;height:300px"></div>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+              <div id="scpu" style="width: 300px; height: 200px"></div>
+              <div id="smem" style="width: 300px; height: 200px"></div>
+          </ul>
+
+        </div>
+        
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div id="loadavg" style="min-width:400px;height:300px"></div>
+          <div id="stat" style="min-width:400px;height:300px"></div>
+          <div id="intr" style="min-width:400px;height:300px"></div>
+          <div id="softirq" style="min-width:400px;height:300px"></div>
+          <div id="ctxt" style="min-width:400px;height:300px"></div>
+          <div id="fork" style="min-width:400px;height:300px"></div>
+          <div id="runnblocked" style="min-width:400px;height:300px"></div>
+          <div id="mem" style="min-width:400px;height:300px"></div>
+        </div>
+      </div>
     </div>
 {% endblock %}
 
@@ -47,22 +59,26 @@
                         var series = chart_stat.series;
                         activeLastPointToolip(chart_stat);
                         var x = data.stat[0], 
-                        y = data.stat[1][0];
-                        series[0].addPoint([x, y], false, true);
-                        y = data.stat[1][1];
-                        series[1].addPoint([x, y], false, true);
-                        y = data.stat[1][2];
-                        series[2].addPoint([x, y], false, true);
-                        y = data.stat[1][4];
-                        series[3].addPoint([x, y], false, true);
-                        y = data.stat[1][5];
-                        series[4].addPoint([x, y], false, true);
-                        y = data.stat[1][6];
-                        series[5].addPoint([x, y], false, true);
-                        y = data.stat[1][7];
-                        series[6].addPoint([x, y], false, true);
+                        y1 = data.stat[1][0];
+                        series[0].addPoint([x, y1], false, true);
+                        y2 = data.stat[1][1];
+                        series[1].addPoint([x, y2], false, true);
+                        y3 = data.stat[1][2];
+                        series[2].addPoint([x, y3], false, true);
+                        y4 = data.stat[1][4];
+                        series[3].addPoint([x, y4], false, true);
+                        y5 = data.stat[1][5];
+                        series[4].addPoint([x, y5], false, true);
+                        y6 = data.stat[1][6];
+                        series[5].addPoint([x, y6], false, true);
+                        y7 = data.stat[1][7];
+                        series[6].addPoint([x, y7], false, true);
                         chart_stat.redraw();
                         activeLastPointToolip(chart_stat);
+
+                        point = chart_scpu.series[0].points[0];
+                        newVal = y1+y2+y3+y4+y5+y6+y7;
+                        point.update(Math.round(newVal));
                     }
                     if(data.intr)
                     {
@@ -136,7 +152,27 @@
                         series[0].addPoint([x, y], false, true); 
                         chart_fork.redraw();
                         activeLastPointToolip(chart_fork);
+                    }
 
+                    if(data.mem)
+                    {
+                        var series = chart_mem.series;
+                        activeLastPointToolip(chart_mem);
+                        var x = data.mem[0], 
+                        y1 = data.mem[1][0];
+                        series[0].addPoint([x, y1], false, true); 
+                        y2 = data.mem[1][1];
+                        series[1].addPoint([x, y2], false, true);
+                        y3 = data.mem[1][2];
+                        series[2].addPoint([x, y3], false, true); 
+                        y4 = data.mem[1][3];
+                        series[3].addPoint([x, y4], false, true);
+                        chart_mem.redraw();
+                        activeLastPointToolip(chart_mem);
+
+                        point = chart_smem.series[0].points[0];
+                        newVal = (1-y2/y1)*100;
+                        point.update(Math.round(newVal));
                     }
                 }
         });
@@ -145,11 +181,28 @@
     Highcharts.setOptions({
             global: {
                     useUTC: false
-            }
+            },
+            yAxis: {
+                    stops: [
+                            [0.1, '#55BF3B'], // green
+                            [0.5, '#DDDF0D'], // yellow
+                            [0.9, '#DF5353'] // red
+                    ],
+                    lineWidth: 0,
+                    minorTickInterval: null,
+                    tickPixelInterval: 400,
+                    tickWidth: 0,
+                    title: {
+                            y: -70
+                    },
+                    labels: {
+                            y: 16
+                    }
+            },            
     });
     function activeLastPointToolip(chart) {
-            var points = chart.series[0].points;
-            chart.tooltip.refresh(points[points.length -1]);
+//            var points = chart.series[0].points;
+//            chart.tooltip.refresh(points[points.length -1]);
     }
     
     var chart = new Highcharts.Chart({
@@ -242,11 +295,8 @@
                     max:100,
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}%</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',
@@ -344,7 +394,6 @@
                     grouping: false,
                     shadow: false,
                     borderWidth: 0,
-                    stacking: 'normal'
                 },
                 series: { 
                         marker: { 
@@ -619,5 +668,221 @@
                     data:  {{ stat.getline('blocked') }}
             }]
     });
+
+    var chart_mem = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'mem',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'mem'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: 'size'
+                    },
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    type: 'spline',
+                    name: 'total',
+                    data: {{ meminfo.getline('total') }},
+                    stack: 'total',
+            },
+            {
+                    name: 'free',
+                    data: {{ meminfo.getline('free') }},
+                    stack: 'free',
+            },
+            {
+                    name: 'cache',
+                    data: {{ meminfo.getline('cache') }},
+                    stack: 'free',
+            },
+            {
+                    name: 'buffer',
+                    data:  {{ meminfo.getline('buffer') }},
+                    stack: 'free',
+            }]
+    });
+
+
+var chart_scpu = Highcharts.chart({
+        chart: {
+            type: 'solidgauge',
+            renderTo: 'scpu',
+        },
+        title: null,
+        pane: {
+                center: ['50%', '85%'],
+                size: '140%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                }
+        },
+        tooltip: {
+                enabled: false
+        },
+        yAxis: {
+                stops: [
+                        [0, '#55BF3B'], // green
+                        [60, '#DDDF0D'], // yellow
+                        [80, '#DF5353'] // red
+                ],
+                lineWidth: 0,
+                minorTickInterval: null,
+                tickPixelInterval: 400,
+                tickWidth: 0,
+                title: {
+                        y: -70
+                },
+                labels: {
+                        y: 16
+                }
+        },
+        plotOptions: {
+                solidgauge: {
+                        dataLabels: {
+                                y: 5,
+                                borderWidth: 0,
+                                useHTML: true
+                        }
+                }
+        },
+        yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                        text: 'cpu'
+                }
+        },
+        credits: {
+                enabled: false
+        },
+        series: [{
+                name: 'cpu',
+                data: [80],
+                dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">%</span></div>'
+                },
+                tooltip: {
+                        valueSuffix: ' %'
+                }
+        }]
+});
+
+var chart_smem = Highcharts.chart({
+        chart: {
+            type: 'solidgauge',
+            renderTo: 'smem',
+        },
+        title: null,
+        pane: {
+                center: ['50%', '85%'],
+                size: '140%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                }
+        },
+        tooltip: {
+                enabled: false
+        },
+        yAxis: {
+                stops: [
+                        [0, '#55BF3B'], // green
+                        [60, '#DDDF0D'], // yellow
+                        [80, '#DF5353'] // red
+                ],
+                lineWidth: 0,
+                minorTickInterval: null,
+                tickPixelInterval: 400,
+                tickWidth: 0,
+                title: {
+                        y: -70
+                },
+                labels: {
+                        y: 16
+                }
+        },
+        plotOptions: {
+                solidgauge: {
+                        dataLabels: {
+                                y: 5,
+                                borderWidth: 0,
+                                useHTML: true
+                        }
+                }
+        },
+        yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                        text: 'mem'
+                }
+        },
+        credits: {
+                enabled: false
+        },
+        series: [{
+                name: 'mem',
+                data: [80],
+                dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">%</span></div>'
+                },
+                tooltip: {
+                        valueSuffix: ' %'
+                }
+        }]
+});
 </script>
 {% endblock %}

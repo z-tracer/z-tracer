@@ -2,7 +2,7 @@
 {% block title %}ZTracer{% endblock %}
 
 {% block main_content %}
-    <div class="container">
+
       <div id="cpuall" style="min-width:400px;height:300px"></div>
       {% if cpunum > 2 %}
           {% for i in range(cpunum) %}
@@ -16,13 +16,13 @@
           <div id="cpu{{i}}" style="min-width:400px;height:300px"></div>
           {% endfor %}
       {% endif %}
-      </div>
+      <div class="col-md-12">
       <div id="mem" style="min-width:400px;height:300px"></div>
       <div id="ctxt" style="min-width:400px;height:300px"></div>
       <div id="nctxt" style="min-width:400px;height:300px"></div>
       <div id="minor" style="min-width:400px;height:300px"></div>
       <div id="major" style="min-width:400px;height:300px"></div>
-    </div>
+      </div>
 {% endblock %}
 
 
@@ -131,6 +131,8 @@
                             {
                                 var cpu = data.process[pid][1]
                                 var per = data.process[pid][0]
+                                if(per > 100)
+                                    per = 100;
                                 if(cpu == cpuidx)
                                 {
                                     if (series.name == pid +'('+data.process[pid][2]+')' )

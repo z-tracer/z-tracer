@@ -24,7 +24,7 @@ def index():
         current_app.g_timer.start()
     
     
-    return render_template('index.html',loadavg = current_app.g_loadavg, stat = current_app.g_stat)
+    return render_template('index.html',loadavg = current_app.g_loadavg, stat = current_app.g_stat, meminfo = current_app.g_meminfo)
 
 @main.route('/cpu', methods=['GET', 'POST'])
 def cpu():
@@ -154,6 +154,7 @@ def update_all():
         misc=[]
         softirq=[]
         irq=[]
+        mem=[]
         if hasattr(current_app,'g_loadavg'):
             ret = current_app.g_loadavg.getlast('all')
         if hasattr(current_app,'g_stat'):
@@ -161,7 +162,8 @@ def update_all():
             misc = current_app.g_stat.getlast('misc')
             softirq = current_app.g_stat.getlast('s_softirq')
             irq = current_app.g_stat.getlast('h_irq')
-        return jsonify({'result':'ok','loadavg':ret,'stat':diff,'ctxt':misc, 'softirq':softirq, 'intr':irq})
+            mem= current_app.g_meminfo.getlast('mem')
+        return jsonify({'result':'ok','loadavg':ret,'stat':diff,'ctxt':misc, 'softirq':softirq, 'intr':irq, 'mem':mem})
 
     if data == 'percpu':
         ret = {}

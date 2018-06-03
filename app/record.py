@@ -705,6 +705,46 @@ class Processes():
         os.system("neato -Tsvg -Nfontsize=12 -Elen=1.9 app/static/pstree -o app/static/pstree.svg")
         
 
+class Meminfo():
+    def __init__(self, **kwargs):
+        self.MemTotal = []
+        self.meminfo = {}
+        self.time = 0
+
+    def update(self):
+        self.time = int(time.time() * 1000)
+        data = get_procinfo('/proc/meminfo')
+        if data == None:
+            return
+        data = data.split('\n')
+        for line in data:
+            if line:
+                line=line.replace(' ','')
+                line=line.split(':')
+                iskB = 0
+                if 'kB' in line[1]:
+                    iskB = 1
+                if iskB == 1:
+                    self.meminfo[line[0]] = int(line[1].replace('kB','')) * 1024
+                else:
+                    self.meminfo[line[0]] = int(line[1])
+        print(self.meminfo)
+
+    def getdata(self,name,num=0):
+        if len(self.meminfo) > 0 :
+            if name == 'total':
+                return self.meminfo['MemTotal']
+            elif name == 'free':
+                return self.meminfo['MemFree']
+            elif name == 'cache':
+                return self.meminfo['Cached']
+            elif name == 'buffer':
+                return self.meminfo['Buffers']
+            elif name == 'mem':
+                return [self.meminfo['MemTotal'],self.meminfo['MemFree'],self.meminfo['Cached'],self.meminfo['Buffers']]
+        return 0
+
+
 class ScanTimer():
     timer = None
     intval = 1
@@ -760,5 +800,14 @@ class ScanTimer():
         if len(current_app.g_processes.data) > 0:
             newprocesses.diff(current_app.g_processes.data[-1])
         current_app.g_processes.add(newprocesses)
+
+        #meminfo
+        if not hasattr(current_app,'g_meminfo'):
+            current_app.g_meminfo = RecordDate()
+        newmeminfo = Meminfo()
+        newmeminfo.update()
+        #if len(current_app.g_meminfo.data) > 0:
+        #    newmeminfo.diff(current_app.g_meminfo.data[-1])
+        current_app.g_meminfo.add(newmeminfo)
 
         ctx.pop() 
