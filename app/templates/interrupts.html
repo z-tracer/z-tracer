@@ -35,6 +35,9 @@
                 if(data.interrupts)
                 {
                     var x = data.interrupts[0];
+                    if (x == x_cpu)
+                        return;
+                    x_cpu = x;
                     for(var irqnum in data.interrupts[1])
                     {
                         for(i=0;i<{{ cpunum }};i++)
@@ -62,7 +65,8 @@
     setInterval(autoupdate,1000);
     var cpunum = {{ cpunum }};
     var chart_cpu=new Array();
-    
+    var x_cpu=0;
+
     {% for i in range(cpunum) %}
         chart_cpu[{{i}}] = new Highcharts.Chart({
             chart: {
@@ -87,11 +91,8 @@
                     min: 0,
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',

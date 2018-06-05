@@ -41,6 +41,9 @@
                 var x
                 if(data.time)
                     x = data.time
+                if (x == x_cpu)
+                        return;
+                x_cpu = x;
 
                 if(data.process)
                 {
@@ -231,6 +234,7 @@
     var ctxt_lastupdate = new Array();
     var nctxt_lastupdate = new Array();
     var mem_lastmem = new Array();
+    var x_cpu = 0;
 
     function create_data(len,x) {
         // 生成初始化空值

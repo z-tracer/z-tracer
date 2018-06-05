@@ -8,21 +8,23 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-              <div id="scpu" style="width: 300px; height: 200px"></div>
-              <div id="smem" style="width: 300px; height: 200px"></div>
+              <div id="scpu" style="min-width:100px; height: 200px"></div>
+              <div id="smem" style="min-width:100px; height: 200px"></div>
           </ul>
 
         </div>
         
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <div id="loadavg" style="min-width:400px;height:300px"></div>
           <div id="stat" style="min-width:400px;height:300px"></div>
-          <div id="intr" style="min-width:400px;height:300px"></div>
+          <div id="mem" style="min-width:400px;height:300px"></div>
+          <div id="loadavg" style="min-width:400px;height:300px"></div>
+          <div id="irqall" style="min-width:400px;height:300px"></div>
           <div id="softirq" style="min-width:400px;height:300px"></div>
           <div id="ctxt" style="min-width:400px;height:300px"></div>
           <div id="fork" style="min-width:400px;height:300px"></div>
           <div id="runnblocked" style="min-width:400px;height:300px"></div>
-          <div id="mem" style="min-width:400px;height:300px"></div>
+          <div id="nrthreads" style="min-width:400px;height:300px"></div>
+          <div id="uptime" style="min-width:400px;height:300px"></div>
         </div>
       </div>
     </div>
@@ -43,7 +45,7 @@
                     if(data.loadavg)
                     {
                         var series = chart.series;
-                        activeLastPointToolip(chart);
+                        //activeLastPointToolip(chart);
                         var x = data.loadavg[0], //时间点
                         y = data.loadavg[1][0];
                         series[0].addPoint([x, y], false, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
@@ -52,13 +54,17 @@
                         y = data.loadavg[1][2];
                         series[2].addPoint([x, y], false, true);
                         chart.redraw();
-                        activeLastPointToolip(chart);
+                        //activeLastPointToolip(chart);
+                        chart_nr_threads.series[0].addPoint([x, data.loadavg[1][3]], true, true);
                     }
                     if(data.stat)
                     {
                         var series = chart_stat.series;
-                        activeLastPointToolip(chart_stat);
-                        var x = data.stat[0], 
+                        //activeLastPointToolip(chart_stat);
+                        var x = data.stat[0];
+                        if (x == x_stat)
+                            return;
+                        x_stat = x;                        
                         y1 = data.stat[1][0];
                         series[0].addPoint([x, y1], false, true);
                         y2 = data.stat[1][1];
@@ -74,7 +80,7 @@
                         y7 = data.stat[1][7];
                         series[6].addPoint([x, y7], false, true);
                         chart_stat.redraw();
-                        activeLastPointToolip(chart_stat);
+                        //activeLastPointToolip(chart_stat);
 
                         point = chart_scpu.series[0].points[0];
                         newVal = y1+y2+y3+y4+y5+y6+y7;
@@ -82,25 +88,50 @@
                     }
                     if(data.intr)
                     {
-                        var series = chart_intr.series;
-                        activeLastPointToolip(chart_intr);
-                        var x = data.intr[0], 
+                        var x = data.intr[0];
+                        if (x == x_irq)
+                            return;
+                        x_irq = x;
                         dict = data.intr[1];
-                        for (var i in dict) { 
-                            y = dict[i];
-                            index = parseInt(i);
-                            if(index == 0)
-                                series[index].addPoint([x, y], false, true);
-                        } 
-                        chart_intr.redraw();
-                        activeLastPointToolip(chart_intr);
+                        for(var irqnum in dict)
+                        {
+                            var found = 0
+                            if(irqnum == 0 )
+                            {
+                                chart_irqall.series[0].addPoint([x, dict[0]], false, true);
+                            }
+                            else
+                            {
+                                for(var tmp of chart_irqall.series)
+                                {
+                                    if((tmp.name + 1) == irqnum)
+                                    {
+                                        found = 1;
+                                        var y = dict[irqnum];
+                                        tmp.addPoint([x, y], false, true);
+                                    }
+                                }
+
+                                if(found == 0)
+                                {
+                                    var newseries=new Array();
+                                    newseries.name = irqnum - 1;
+                                    newseries.data = create_data(120,x,dict[irqnum]); 
+                                    chart_irqall.addSeries(newseries);  
+                                }
+                            }
+                        }
+                        chart_irqall.redraw();
                     }
 
                     if(data.softirq)
                     {
                         var series = chart_softirq.series;
                         //activeLastPointToolip(chart_softirq);
-                        var x = data.softirq[0], 
+                        var x = data.softirq[0];
+                        if (x == x_softirq)
+                            return;
+                        x_softirq = x;
                         y = data.softirq[1][1];
                         series[0].addPoint([x, y], false, true);
                         y = data.softirq[1][2];
@@ -128,54 +159,85 @@
                     if(data.ctxt)
                     {
                         var series = chart_run_block.series;
-                        activeLastPointToolip(chart_run_block);
+                        //activeLastPointToolip(chart_run_block);
                         var x = data.ctxt[0], 
                         y = data.ctxt[1][2];
                         series[0].addPoint([x, y], false, true); 
                         y = data.ctxt[1][3];
                         series[1].addPoint([x, y], false, true);
                         chart_run_block.redraw();
-                        activeLastPointToolip(chart_run_block);
+                        //activeLastPointToolip(chart_run_block);
 
                         var series = chart_ctxt.series;
-                        activeLastPointToolip(chart_ctxt);
+                        //activeLastPointToolip(chart_ctxt);
                         var x = data.ctxt[0], 
                         y = data.ctxt[1][0];
                         series[0].addPoint([x, y], false, true); 
                         chart_ctxt.redraw();
-                        activeLastPointToolip(chart_ctxt);
+                        //activeLastPointToolip(chart_ctxt);
                         
                         var series = chart_fork.series;
-                        activeLastPointToolip(chart_fork);
+                        //activeLastPointToolip(chart_fork);
                         var x = data.ctxt[0], 
                         y = data.ctxt[1][1];
                         series[0].addPoint([x, y], false, true); 
                         chart_fork.redraw();
-                        activeLastPointToolip(chart_fork);
+                        //activeLastPointToolip(chart_fork);
                     }
 
                     if(data.mem)
                     {
                         var series = chart_mem.series;
-                        activeLastPointToolip(chart_mem);
-                        var x = data.mem[0], 
-                        y1 = data.mem[1][0];
+                        //activeLastPointToolip(chart_mem);
+                        var x = data.mem[0];
+                        if (x == x_mem)
+                            return;
+                        x_mem = x;
+                        y1 = data.mem[1][1];
                         series[0].addPoint([x, y1], false, true); 
-                        y2 = data.mem[1][1];
-                        series[1].addPoint([x, y2], false, true);
                         y3 = data.mem[1][2];
                         series[2].addPoint([x, y3], false, true); 
                         y4 = data.mem[1][3];
                         series[3].addPoint([x, y4], false, true);
+                        y2 = data.mem[1][4];
+                        series[1].addPoint([x, y2], false, true);
                         chart_mem.redraw();
-                        activeLastPointToolip(chart_mem);
+                        //activeLastPointToolip(chart_mem);
 
                         point = chart_smem.series[0].points[0];
-                        newVal = (1-y2/y1)*100;
+                        newVal = (1-y1/data.mem[1][0])*100;
                         point.update(Math.round(newVal));
                     }
+
+                    if(data.uptime)
+                    {
+                        var series = chart_uptime.series;
+                        var x = data.uptime[0];
+                        y1 = data.uptime[1][0];
+                        series[0].addPoint([x, y1], false, true); 
+                        y2 = data.uptime[1][1];
+                        series[1].addPoint([x, y2], false, true); 
+                        chart_uptime.redraw();
+                    }
+
                 }
         });
+    }
+
+    function create_data(len,x,lastval) {
+        // 生成初始化空值
+        var data = [],time = x,i;
+        for (i = -len; i < 0; i += 1) {
+                data.push({
+                        x: time,
+                        y: 0 
+                });
+        }
+        data.push({
+            x: time,
+            y: lastval 
+        });
+        return data;
     }
 
     Highcharts.setOptions({
@@ -188,23 +250,16 @@
                             [0.5, '#DDDF0D'], // yellow
                             [0.9, '#DF5353'] // red
                     ],
-                    lineWidth: 0,
-                    minorTickInterval: null,
-                    tickPixelInterval: 400,
-                    tickWidth: 0,
-                    title: {
-                            y: -70
-                    },
-                    labels: {
-                            y: 16
-                    }
-            },            
+
+            },          
     });
     function activeLastPointToolip(chart) {
 //            var points = chart.series[0].points;
 //            chart.tooltip.refresh(points[points.length -1]);
     }
     
+    var x_stat = 0,x_mem = 0, x_softirq = 0, x_irq=0;
+
     var chart = new Highcharts.Chart({
             chart: {
                     type: 'spline',
@@ -352,65 +407,6 @@
             }]
     });
 
-    var chart_intr = new Highcharts.Chart({
-            chart: {
-                    type: 'area',
-                    renderTo: 'intr',
-                    marginRight: 10,
-            },
-            title: {
-                    text: 'hw irq'
-            },
-            subtitle: {
-                    text: null
-            },
-            xAxis: {
-                    type: 'datetime',
-                    tickPixelInterval: 150
-            },
-            yAxis: {
-                    title: {
-                            text: '次数'
-                    },
-                    min: 0,
-            },
-            tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
-            },
-            legend: {
-                    layout: 'vertical',
-                    floating: true,
-                    align: 'left',
-                    verticalAlign: 'top',
-                    x: 90,
-                    y: 45,
-            },
-            plotOptions: {
-                area: {
-                    grouping: false,
-                    shadow: false,
-                    borderWidth: 0,
-                },
-                series: { 
-                        marker: { 
-                            enabled: false //remove plot
-                        } 
-                }, 
-            },
-            credits: {  
-              enabled:false  
-            },  
-            series: [{
-                    name: 'irq',
-                    data: {{ stat.getline('h_all') }}
-            }]
-    });
-
-    
     var chart_softirq = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -431,14 +427,10 @@
                     title: {
                             text: '次数'
                     },
-                    min: 0,
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',
@@ -526,7 +518,6 @@
                     title: {
                             text: '切换次数'
                     },
-                    min: 0,
             },
             tooltip: {
                     formatter: function () {
@@ -579,7 +570,6 @@
                     title: {
                             text: '进程数量'
                     },
-                    min: 0,
             },
             tooltip: {
                     formatter: function () {
@@ -632,7 +622,6 @@
                     title: {
                             text: '进程数量'
                     },
-                    min: 0,
             },
             tooltip: {
                     formatter: function () {
@@ -687,7 +676,312 @@
             },
             yAxis: {
                     title: {
-                            text: 'size'
+                            text: '大小'
+                    },
+                    /*labels:{
+                        reserveSpace : false,
+                    },*/
+                    min: 0,
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        }, 
+                }, 
+                area: {
+                    grouping: false,
+                    shadow: false,
+                    borderWidth: 0,
+                    stacking: 'normal'
+                },
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [
+            {
+                    name: 'free',
+                    data: {{ meminfo.getline('free') }},
+            },
+            {
+                    name: 'used',
+                    data: {{ meminfo.getline('used') }},
+            },
+            {
+                    name: 'cache',
+                    data: {{ meminfo.getline('cache') }},
+            },
+            {
+                    name: 'buffer',
+                    data:  {{ meminfo.getline('buffer') }},
+            }]
+    });
+
+
+var chart_scpu = Highcharts.chart({
+        chart: {
+            type: 'solidgauge',
+            renderTo: 'scpu',
+        },
+        title: null,
+        pane: {
+                center: ['50%', '85%'],
+                size: '130%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                }
+        },
+        tooltip: {
+                enabled: false
+        },
+        yAxis: {
+                lineWidth: 0,
+                minorTickInterval: null,
+                tickPixelInterval: 400,
+                tickWidth: 0,
+                title: {
+                        y: -70,
+                        text: 'cpu',
+                },
+                labels: {
+                        y: 16
+                },
+                min: 0,
+                max: 100,
+        },
+        plotOptions: {
+                solidgauge: {
+                        dataLabels: {
+                                y: 5,
+                                borderWidth: 0,
+                                useHTML: true
+                        }
+                }
+        },
+        credits: {
+                enabled: false
+        },
+        series: [{
+                name: 'cpu',
+                data: [80],
+                dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">%</span></div>'
+                },
+                tooltip: {
+                        valueSuffix: ' %'
+                }
+        }]
+});
+
+var chart_smem = Highcharts.chart({
+        chart: {
+            type: 'solidgauge',
+            renderTo: 'smem',
+        },
+        title: null,
+        pane: {
+                center: ['50%', '85%'],
+                size: '130%',
+                startAngle: -90,
+                endAngle: 90,
+                background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                }
+        },
+        tooltip: {
+                enabled: false
+        },
+        yAxis: {
+                lineWidth: 0,
+                minorTickInterval: null,
+                tickPixelInterval: 400,
+                tickWidth: 0,
+                title: {
+                        y: -70,
+                        text: 'mem',  //显示标题的位置
+                },
+                labels: {
+                        y: 16, //指定显示0 100刻度的位置
+                },
+                min: 0,
+                max: 100,
+        },
+        plotOptions: {
+                solidgauge: {
+                        dataLabels: {
+                                y: 5,
+                                borderWidth: 0,
+                                useHTML: true
+                        }
+                }
+        },
+        credits: {
+                enabled: false
+        },
+        series: [{
+                name: 'mem',
+                data: [80],
+                dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">%</span></div>'
+                },
+                tooltip: {
+                        valueSuffix: ' %'
+                }
+        }]
+});
+
+    var chart_nr_threads = new Highcharts.Chart({
+            chart: {
+                    type: 'spline',
+                    renderTo: 'nrthreads',
+                    marginRight: 10,
+            },
+            title: {
+                    text: '进程线程总数'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '线程数量'
+                    },
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'threads',
+                    data: {{ loadavg.getline('nr_threads') }}
+            }]
+    });
+
+    var chart_uptime = new Highcharts.Chart({
+            chart: {
+                    type: 'spline',
+                    renderTo: 'uptime',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'uptime'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    type: 'datetime',
+                    title: {
+                            text: '时间'
+                    },
+            },
+            tooltip: {
+                    formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                    Highcharts.numberFormat(this.y, 2);
+                    }
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            plotOptions: {
+                series: { 
+                        marker: { 
+                            enabled: false //remove plot
+                        } 
+                }, 
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [{
+                    name: 'uptime',
+                    data: {{ uptime.getline('uptime') }}
+            },{
+                    name: 'idletime',
+                    data: {{ uptime.getline('idletime',cpunum) }}
+            }]
+    });
+
+        chart_irqall = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'irqall',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'interrupt'
+            },
+            subtitle: {
+                    text: null
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: '次数'
                     },
                     min: 0,
             },
@@ -719,170 +1013,23 @@
             credits: {  
               enabled:false  
             },  
-            series: [{
+            series: [
+            {
                     type: 'spline',
-                    name: 'total',
-                    data: {{ meminfo.getline('total') }},
-                    stack: 'total',
+                    name: 'all',
+                    data: {{ stat.getline('h_irq',0) }},
+                    stack:'all',
             },
+            {% for key in stat.data[-1].diffintr %}
+            {% if key != 0 %}
             {
-                    name: 'free',
-                    data: {{ meminfo.getline('free') }},
-                    stack: 'free',
+                    name: {{ key-1 }},
+                    data: {{ stat.getline('h_irq',key) }},
+                    stack:'irq',
             },
-            {
-                    name: 'cache',
-                    data: {{ meminfo.getline('cache') }},
-                    stack: 'free',
-            },
-            {
-                    name: 'buffer',
-                    data:  {{ meminfo.getline('buffer') }},
-                    stack: 'free',
-            }]
+            {% endif %}
+            {% endfor %}
+            ]
     });
-
-
-var chart_scpu = Highcharts.chart({
-        chart: {
-            type: 'solidgauge',
-            renderTo: 'scpu',
-        },
-        title: null,
-        pane: {
-                center: ['50%', '85%'],
-                size: '140%',
-                startAngle: -90,
-                endAngle: 90,
-                background: {
-                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
-                        innerRadius: '60%',
-                        outerRadius: '100%',
-                        shape: 'arc'
-                }
-        },
-        tooltip: {
-                enabled: false
-        },
-        yAxis: {
-                stops: [
-                        [0, '#55BF3B'], // green
-                        [60, '#DDDF0D'], // yellow
-                        [80, '#DF5353'] // red
-                ],
-                lineWidth: 0,
-                minorTickInterval: null,
-                tickPixelInterval: 400,
-                tickWidth: 0,
-                title: {
-                        y: -70
-                },
-                labels: {
-                        y: 16
-                }
-        },
-        plotOptions: {
-                solidgauge: {
-                        dataLabels: {
-                                y: 5,
-                                borderWidth: 0,
-                                useHTML: true
-                        }
-                }
-        },
-        yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                        text: 'cpu'
-                }
-        },
-        credits: {
-                enabled: false
-        },
-        series: [{
-                name: 'cpu',
-                data: [80],
-                dataLabels: {
-                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
-                        '<span style="font-size:12px;color:silver">%</span></div>'
-                },
-                tooltip: {
-                        valueSuffix: ' %'
-                }
-        }]
-});
-
-var chart_smem = Highcharts.chart({
-        chart: {
-            type: 'solidgauge',
-            renderTo: 'smem',
-        },
-        title: null,
-        pane: {
-                center: ['50%', '85%'],
-                size: '140%',
-                startAngle: -90,
-                endAngle: 90,
-                background: {
-                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
-                        innerRadius: '60%',
-                        outerRadius: '100%',
-                        shape: 'arc'
-                }
-        },
-        tooltip: {
-                enabled: false
-        },
-        yAxis: {
-                stops: [
-                        [0, '#55BF3B'], // green
-                        [60, '#DDDF0D'], // yellow
-                        [80, '#DF5353'] // red
-                ],
-                lineWidth: 0,
-                minorTickInterval: null,
-                tickPixelInterval: 400,
-                tickWidth: 0,
-                title: {
-                        y: -70
-                },
-                labels: {
-                        y: 16
-                }
-        },
-        plotOptions: {
-                solidgauge: {
-                        dataLabels: {
-                                y: 5,
-                                borderWidth: 0,
-                                useHTML: true
-                        }
-                }
-        },
-        yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                        text: 'mem'
-                }
-        },
-        credits: {
-                enabled: false
-        },
-        series: [{
-                name: 'mem',
-                data: [80],
-                dataLabels: {
-                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
-                        '<span style="font-size:12px;color:silver">%</span></div>'
-                },
-                tooltip: {
-                        valueSuffix: ' %'
-                }
-        }]
-});
 </script>
 {% endblock %}

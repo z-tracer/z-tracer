@@ -57,7 +57,7 @@ class RecordDate():
         for val in self.data:
             if d > 0:  #数据不够时填充
                 for i in range(d):
-                    ret.append([val.time,val.getdata(name, num)])
+                    ret.append([val.time,0])
                 d = 0
             ret.append([val.time,val.getdata(name, num)])
         return ret
@@ -91,16 +91,22 @@ class Loadavg():
         self.load5 = 0
         self.load15 = 0
         self.time = 0
+        self.nr_threads = 0  #所有进程线程总数
     
     def update(self):
-        avg = get_procinfo('/proc/loadavg')
         self.time = int(time.time() * 1000)
-        self.load1 = float(avg.split(' ')[0])
-        self.load5 = float(avg.split(' ')[1])
-        self.load15 = float(avg.split(' ')[2])
+        data = get_procinfo('/proc/loadavg')
+        if data == None:
+            return
+        data = data.split(' ')
+        self.load1 = float(data[0])
+        self.load5 = float(data[1])
+        self.load15 = float(data[2])
         self.rec.add(0,self.load1)
         self.rec.add(1,self.load5)
         self.rec.add(2,self.load15)
+        ind = data[3].find('/')
+        self.nr_threads = int(data[3][ind+1:])
         return [self.load1,self.load5,self.load15]
         #print(self.rec.data[0])
         #print(self.rec.data[1])
@@ -113,8 +119,10 @@ class Loadavg():
             return self.load5
         elif name == 'load15':
             return self.load15
+        elif name == 'nr_threads':
+            return self.nr_threads
         else:
-            return [self.load1,self.load5,self.load15]
+            return [self.load1,self.load5,self.load15,self.nr_threads]
     
     def draw(self):
         self.update()
@@ -129,6 +137,28 @@ class Loadavg():
         #return bar_chart.render_response() 直接返回xml格式的页面
         line_chart.render_to_file('app/static/loadavg.svg') 
         return line_chart.render_data_uri() #编码成base uri格式，以嵌入到html代码中
+
+class Uptime():
+    def __init__(self, **kwargs):
+        self.uptime = 0  #系统启动以来的时间
+        self.idletime = 0 #所有cpu空闲时间之和
+
+    def update(self):
+        self.time = int(time.time() * 1000)
+        data = get_procinfo('/proc/uptime')
+        if data == None:
+            return
+        data = data.split(' ')
+        self.uptime = float(data[0])
+        self.idletime = float(data[1])
+
+    def getdata(self,name,num=1):
+        if name == 'uptime':
+            return self.uptime
+        elif name == 'idletime':
+            return self.idletime/num
+        else:
+            return [self.uptime,self.idletime/num]
 
 class Stat():
     def __init__(self, **kwargs):
@@ -246,51 +276,59 @@ class Stat():
                 summm=self.intr[i] - oldstat.intr[i]
                 if summm > 0:
                     self.diffintr[i] = summm
-            #print(self.diffintr)
+            print(self.diffintr)
 
     def getdata(self,name,num=0):
-        if num == 0:
-            if len(self.diffcpu) > 0:
-                if name == 'user':
-                    return self.diffcpu[0]
-                elif name == 'nice':
-                    return self.diffcpu[1]
-                elif name == 'system':
-                    return self.diffcpu[2]
-                elif name == 'idle':
-                    return self.diffcpu[3]
-                elif name == 'iowait':
-                    return self.diffcpu[4]
-                elif name == 'irq':
-                    return self.diffcpu[5]
-                elif name == 'softirq':
-                    return self.diffcpu[6]
-                elif name == 'steal':
-                    return self.diffcpu[7]
-                elif name == 'utilization':
-                    return self.diffcpu
+        if name == 'h_irq' or name == 'h_all':
+            if len(self.diffintr) > 0:
+                if name == 'h_irq':
+                    num = int(num)
+                    if num in self.diffintr:
+                        return self.diffintr[num]
+                elif name == 'h_all':
+                    return self.diffintr
         else:
-            num = int(num-1)
-            if len(self.diffpercpu) > 0:
-                if name == 'user':
-                    return self.diffpercpu[num][0]
-                elif name == 'nice':
-                    return self.diffpercpu[num][1]
-                elif name == 'system':
-                    return self.diffpercpu[num][2]
-                elif name == 'idle':
-                    return self.diffpercpu[num][3]
-                elif name == 'iowait':
-                    return self.diffpercpu[num][4]
-                elif name == 'irq':
-                    return self.diffpercpu[num][5]
-                elif name == 'softirq':
-                    return self.diffpercpu[num][6]
-                elif name == 'steal':
-                    return self.diffpercpu[num][7]
-                elif name == 'utilization':
-                    return self.diffpercpu[num]
-
+            if num == 0:
+                if len(self.diffcpu) > 0:
+                    if name == 'user':
+                        return self.diffcpu[0]
+                    elif name == 'nice':
+                        return self.diffcpu[1]
+                    elif name == 'system':
+                        return self.diffcpu[2]
+                    elif name == 'idle':
+                        return self.diffcpu[3]
+                    elif name == 'iowait':
+                        return self.diffcpu[4]
+                    elif name == 'irq':
+                        return self.diffcpu[5]
+                    elif name == 'softirq':
+                        return self.diffcpu[6]
+                    elif name == 'steal':
+                        return self.diffcpu[7]
+                    elif name == 'utilization':
+                        return self.diffcpu
+            else:
+                num = int(num-1)
+                if len(self.diffpercpu) > 0:
+                    if name == 'user':
+                        return self.diffpercpu[num][0]
+                    elif name == 'nice':
+                        return self.diffpercpu[num][1]
+                    elif name == 'system':
+                        return self.diffpercpu[num][2]
+                    elif name == 'idle':
+                        return self.diffpercpu[num][3]
+                    elif name == 'iowait':
+                        return self.diffpercpu[num][4]
+                    elif name == 'irq':
+                        return self.diffpercpu[num][5]
+                    elif name == 'softirq':
+                        return self.diffpercpu[num][6]
+                    elif name == 'steal':
+                        return self.diffpercpu[num][7]
+                    elif name == 'utilization':
+                        return self.diffpercpu[num]
 
         if name == 'run':
             return self.procs_running
@@ -327,11 +365,6 @@ class Stat():
             elif name == 's_softirq':
                 return self.diffsoftirq
         
-        if len(self.diffintr) > 0:
-            if name == 'h_all':
-                return self.diffintr[0]
-            elif name == 'h_irq':
-                return self.diffintr
         return 0
 
 class Softirqs():
@@ -611,7 +644,7 @@ class Process():
         
 class Processes():
     def __init__(self, **kwargs):
-        self.pidcnt = 0
+        self.pidcnt = 0   #进程总数，/proc/pid是不包括线程的
         self.process_dict = {}
         self.ordered = []
         self.diffcpu = {}
@@ -650,6 +683,7 @@ class Processes():
             self.diffcpu = self.stat.difftotal_cputime
             print(self.diffcpu)
             
+            nr_thread = 0
             for key in self.process_dict:
                 if key in oldstat.process_dict:
                     difftime = self.process_dict[key].cputime - oldstat.process_dict[key].cputime
@@ -671,7 +705,7 @@ class Processes():
                         diffvss = self.process_dict[key].VmRSS- oldstat.process_dict[key].VmRSS
                         if diffvss != 0:
                             self.diffmem[key] = [self.process_dict[key].VmRSS, self.process_dict[key].comm]
-
+                    nr_thread += int(self.process_dict[key].stat[19])
             #print(self.diffprocess)
             #print(self.diffmajor)
             #print(self.diffminor)
@@ -728,7 +762,6 @@ class Meminfo():
                     self.meminfo[line[0]] = int(line[1].replace('kB','')) * 1024
                 else:
                     self.meminfo[line[0]] = int(line[1])
-        print(self.meminfo)
 
     def getdata(self,name,num=0):
         if len(self.meminfo) > 0 :
@@ -740,8 +773,11 @@ class Meminfo():
                 return self.meminfo['Cached']
             elif name == 'buffer':
                 return self.meminfo['Buffers']
+            elif name == 'used':
+                return self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']
             elif name == 'mem':
-                return [self.meminfo['MemTotal'],self.meminfo['MemFree'],self.meminfo['Cached'],self.meminfo['Buffers']]
+                return [self.meminfo['MemTotal'],self.meminfo['MemFree'],self.meminfo['Cached'],self.meminfo['Buffers'],
+                self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']]
         return 0
 
 
@@ -806,8 +842,13 @@ class ScanTimer():
             current_app.g_meminfo = RecordDate()
         newmeminfo = Meminfo()
         newmeminfo.update()
-        #if len(current_app.g_meminfo.data) > 0:
-        #    newmeminfo.diff(current_app.g_meminfo.data[-1])
         current_app.g_meminfo.add(newmeminfo)
 
+        #uptime
+        if not hasattr(current_app,'g_uptime'):
+            current_app.g_uptime = RecordDate()
+        newuptime = Uptime()
+        newuptime.update()
+        current_app.g_uptime.add(newuptime)
+        
         ctx.pop() 

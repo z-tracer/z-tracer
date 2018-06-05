@@ -37,7 +37,10 @@
                     for(i=0;i<{{ cpunum }};i++)
                     {
                         var series = chart_cpu[i].series;
-                        var x = data.softirqs[i][0], 
+                        var x = data.softirqs[i][0];
+                        if (x == x_cpu[i])
+                            return;
+                        x_cpu[i] = x;
                         y = data.softirqs[i][1][0];
                         series[0].addPoint([x, y], false, true);
                         y = data.softirqs[i][1][1];
@@ -68,9 +71,11 @@
     setInterval(autoupdate,1000);
     var cpunum = {{ cpunum }};
     var chart_cpu=new Array();
-    
+    var x_cpu=new Array();
+
     {% for i in range(cpunum) %}
-        chart_cpu[{{i}}] = new Highcharts.Chart({
+            x_cpu[{{i}}] = 0;
+            chart_cpu[{{i}}] = new Highcharts.Chart({
             chart: {
                     type: 'area',
                     renderTo: 'cpu{{i}}',
@@ -93,11 +98,8 @@
                     min: 0,
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',
