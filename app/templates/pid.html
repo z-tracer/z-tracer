@@ -6,11 +6,25 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
+
         <h5>命令行:</h5>
         <p>{{ data.cmdline }}</p>
         <hr/>
+
+        <h5>环境变量:</h5>
+        <p>{{ data.environ }}</p>
+        <hr/>
+
+        <h5>文件描述符:{{data.fdnum}}</h5>
+        <p>{{ data.fdlist }}</p>
+        <hr/>
+
         <table class="table table-condensed">
+          {% if data.nr_threads > 1%}
+          <caption>线程组信息</caption>
+          {% else %}
           <caption>进程信息</caption>
+          {% endif %}
           <thead>
             <tr>
               <th>pid</th>
@@ -19,36 +33,116 @@
               <th>ppid</th>
               <th>pgid</th>
               <th>sid</th>
+              <th>线程个数</th>
               <th>utime</th>
               <th>stime</th>
-              <th>动态优先级</th>
+              <th>cutime</th>
+              <th>cstime</th>
+              <th>VSS</th>
+              <th>RSS</th>
+              <th>minor</th>
+              <th>major</th>
+              <th>cminor</th>
+              <th>cmajor</th>
               <th>nice</th>
-              <th>线程个数</th>
-              <th>启动时间</th>
+              <th>动态优先级</th>
               <th>实时优先级</th>
               <th>调度策略</th>
+              <th>oncpu</th>
+              <th>启动时间</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>{{ data.stat[0] }}</td>
+              <td><a href="/process/{{ data.stat[0] }}">{{ data.stat[0] }}</a></td>
               <td>{{ data.stat[1] }}</td>
               <td>{{ data.stat[2] }}</td>
-              <td>{{ data.stat[3] }}</td>
-              <td>{{ data.stat[4] }}</td>
-              <td>{{ data.stat[5] }}</td>
+              <td><a href="/process/{{ data.stat[3] }}">{{ data.stat[3] }}</td>
+              <td><a href="/process/{{ data.stat[4] }}">{{ data.stat[4] }}</td>
+              <td><a href="/process/{{ data.stat[5] }}">{{ data.stat[5] }}</td>
+              <td>{{ data.stat[19] }}</td>
               <td>{{ data.stat[13] }}</td>
               <td>{{ data.stat[14] }}</td>
-              <td>{{ data.stat[17] }}</td>
+              <td>{{ data.stat[15] }}</td>
+              <td>{{ data.stat[16] }}</td>
+              <td>{{ data.stat[22] }}</td>
+              <td>{{ data.stat[23] }}</td>
+              <td>{{ data.stat[9] }}</td>
+              <td>{{ data.stat[11] }}</td>
+              <td>{{ data.stat[10] }}</td>
+              <td>{{ data.stat[12] }}</td>
               <td>{{ data.stat[18] }}</td>
-              <td>{{ data.stat[19] }}</td>
-              <td>{{ data.stat[21] }}</td>
+              <td>{{ data.stat[17] }}</td>
               <td>{{ data.stat[39] }}</td>
               <td>{{ data.stat[40] }}</td>
+              <td>{{ data.stat[38] }}</td>
+              <td>{{ data.stat[21] }}</td>
             </tr>
           </tbody>
         </table>
         
+        {% if data.nr_threads > 1%}
+        <table class="table table-condensed">
+          <caption>线程信息</caption>
+          <thead>
+            <tr>
+              <th>pid</th>
+              <th>名称</th>
+              <th>状态</th>
+              <th>ppid</th>
+              <th>pgid</th>
+              <th>sid</th>
+              <th>线程个数</th>
+              <th>utime</th>
+              <th>stime</th>
+              <th>cutime</th>
+              <th>cstime</th>
+              <th>VSS</th>
+              <th>RSS</th>
+              <th>minor</th>
+              <th>major</th>
+              <th>cminor</th>
+              <th>cmajor</th>
+              <th>nice</th>
+              <th>动态优先级</th>
+              <th>实时优先级</th>
+              <th>调度策略</th>
+              <th>oncpu</th>
+              <th>启动时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in data.threads %}
+            <tr>
+              <td><a href="/process/{{ data.threads[key].stat[0] }}">{{ data.threads[key].stat[0] }}</a></td>
+              <td>{{ data.threads[key].stat[1] }}</td>
+              <td>{{ data.threads[key].stat[2] }}</td>
+              <td><a href="/process/{{ data.threads[key].stat[3] }}">{{ data.threads[key].stat[3] }}</td>
+              <td><a href="/process/{{ data.threads[key].stat[4] }}">{{ data.threads[key].stat[4] }}</td>
+              <td><a href="/process/{{ data.threads[key].stat[5] }}">{{ data.threads[key].stat[5] }}</td>
+              <td>{{ data.threads[key].stat[19] }}</td>
+              <td>{{ data.threads[key].stat[13] }}</td>
+              <td>{{ data.threads[key].stat[14] }}</td>
+              <td>{{ data.threads[key].stat[15] }}</td>
+              <td>{{ data.threads[key].stat[16] }}</td>
+              <td>{{ data.threads[key].stat[22] }}</td>
+              <td>{{ data.threads[key].stat[23] }}</td>
+              <td>{{ data.threads[key].stat[9] }}</td>
+              <td>{{ data.threads[key].stat[11] }}</td>
+              <td>{{ data.threads[key].stat[10] }}</td>
+              <td>{{ data.threads[key].stat[12] }}</td>
+              <td>{{ data.threads[key].stat[18] }}</td>
+              <td>{{ data.threads[key].stat[17] }}</td>
+              <td>{{ data.threads[key].stat[39] }}</td>
+              <td>{{ data.threads[key].stat[40] }}</td>
+              <td>{{ data.threads[key].stat[38] }}</td>
+              <td>{{ data.threads[key].stat[21] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
         <hr/>
         <table class="table table-striped">
           <caption>信号</caption>
@@ -118,8 +212,10 @@
         </div>
 
         <div class="col-md-12" id="pidvmmemcol" style="min-width:400px;height:400px"></div>
-        <div class="col-md-12" id="pidvmmem" style="min-width:400px;height:400px"></div>
-        <div class="col-md-12" id="pidcputime" style="min-width:400px;height:400px"></div>
+        <div class="col-md-12" id="pidvmmem" style="min-width:400px;height:300px"></div>
+        <div class="col-md-12" id="pidrss" style="min-width:400px;height:300px"></div>
+        <div class="col-md-12" id="pidcputime" style="min-width:400px;height:300px"></div>
+        <div class="col-md-12" id="childrentree" style="min-width:400px;min-height:400px"></div>
     </div>
 {% endblock %}
 
@@ -137,35 +233,43 @@
                 if(status == "success")
                 {
                     var series = chart.series;
-                    activeLastPointToolip(chart);
                     var x = (new Date()).getTime(), // 当前时间
                     y = data.src[0];
-                    series[0].addPoint([x, y], true, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
+                    series[0].addPoint([x, y], false, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
                     y = data.src[1];
-                    series[1].addPoint([x, y], true, true);
+                    series[1].addPoint([x, y], false, true);
                     y = data.src[2];
-                    series[2].addPoint([x, y], true, true);
+                    series[2].addPoint([x, y], false, true);
                     y = data.src[3];
-                    series[3].addPoint([x, y], true, true);
+                    series[3].addPoint([x, y], false, true);
                     y = data.src[4];
-                    series[4].addPoint([x, y], true, true);
+                    series[4].addPoint([x, y], false, true);
                     chart.redraw()
-                    activeLastPointToolip(chart);
                     
+
                     var series_cpu = chart_cpu.series;
-                    activeLastPointToolip(chart_cpu);
-                    y = data.src[5];
-                    series_cpu[0].addPoint([x, y], true, true); //由于要画多个点，第二个参数（自动刷新）不要使能，最后统一重绘
-                    y = data.src[6];
-                    series_cpu[1].addPoint([x, y], true, true);
+                    var y1 = data.src[5]
+                    var diff1 = y1 - last_utime
+                    last_utime = y1
+                    series_cpu[0].addPoint([x, diff1], true, true); 
+
+                    var y2 = data.src[6];
+                    var diff2 = y2 - last_stime
+                    last_stime = y2
+                    series_cpu[1].addPoint([x, diff2], true, true);
                     chart_cpu.redraw()
-                    activeLastPointToolip(chart_cpu);
+
+                    if (chart_rss.series[0].points.length >= 120)
+                        chart_rss.series[0].addPoint([x, data.src[7]], true, true); 
+                    else
+                        chart_rss.series[0].addPoint([x, data.src[7]], true, false); 
                     //document.getElementById("chart1").src=data.src;
                     //document.getElementById("chart2").src="/static/loadavg.svg?t=" + Date();
                 }
             });
     }
-
+    var last_utime={{ data.utime }};
+    var last_stime={{data.stime}};
     function create_data(len) {
         // 生成初始化空值
         var data = [],time = (new Date()).getTime(),i;
@@ -187,6 +291,7 @@
             var points = chart.series[0].points;
             chart.tooltip.refresh(points[points.length -1]);
     }
+
     var chart = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -207,7 +312,7 @@
             },
             yAxis: {
                     title: {
-                            text: 'kB'
+                            text: '大小'
                     },
                     min: 0,
                     allowDecimals: false,
@@ -223,11 +328,8 @@
                 }, 
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',
@@ -268,6 +370,7 @@
             }]
     });
     
+    {% if data.VmPeak %}
     var chart_col = new Highcharts.Chart({
             chart: {
                     type: 'column',
@@ -285,7 +388,7 @@
             yAxis: {
                 min: 0,
                 title: {
-                    text: 'kB'
+                    text: '大小'
                 },
                 plotLines:[{
                     color:'red',           //线的颜色，定义为红色
@@ -294,7 +397,7 @@
                     width:2,                //标示线的宽度，2px
                     label:{
                         align:'right', 
-                        text:'虚拟内存最大值{{ data.VmPeak }}kB',
+                        text:'虚拟内存最大值{{ data.VmPeak/1024 }}KB',
                     }
                 },{
                     color:'blue',           //线的颜色，定义为红色
@@ -303,7 +406,7 @@
                     width:2,                //标示线的宽度，2px
                     label:{
                         align:'right', 
-                        text:'物理内存最大值{{ data.VmHWM }}kB',
+                        text:'物理内存最大值{{ data.VmHWM/1024 }}KB',
                     }
                 }],
                 
@@ -326,7 +429,7 @@
                 name: 'vmtotal',
                 data: [{{ data.VmSize }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },                
                 pointPadding: 0.38,
                 pointPlacement: -0.3,
@@ -335,7 +438,7 @@
                 name: 'stk',
                 data: [{{ data.VmStk }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.3,
@@ -344,7 +447,7 @@
                 name: 'data',
                 data: [{{ data.VmData }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.3,
@@ -353,7 +456,7 @@
                 name: 'lib',
                 data: [{{ data.VmLib }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.3,
@@ -362,7 +465,7 @@
                 name: 'exe',
                 data: [{{ data.VmExe }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.3,
@@ -371,7 +474,7 @@
                 name: 'rss',
                 data: [{{ data.VmRSS }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.1,
@@ -380,7 +483,7 @@
                 name: 'pte',
                 data: [{{ data.VmPTE }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: -0.1,
@@ -389,7 +492,7 @@
                 name: 'swap',
                 data: [{{ data.VmSwap }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: 0.1,
@@ -398,7 +501,7 @@
                 name: 'lock',
                 data: [{{ data.VmLck }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: 0.3,
@@ -407,7 +510,7 @@
                 name: 'pin',
                 data: [{{ data.VmPin }}],
                 tooltip: {
-                    valueSuffix: ' kB'
+                    valueSuffix: ' B'
                 },
                 pointPadding: 0.4,
                 pointPlacement: 0.5,
@@ -418,11 +521,17 @@
                 data: [{
                     name: '文件页',
                     y: {{ data.RssFile }},
-                    color: Highcharts.getOptions().colors[11] 
+                    color: Highcharts.getOptions().colors[11],
+                    tooltip: {
+                        valueSuffix: ' B'
+                    },                     
                 }, {
                     name: '匿名页',
                     y: {{ data.VmRSS - data.RssFile }},
-                    color: Highcharts.getOptions().colors[12]
+                    color: Highcharts.getOptions().colors[12],
+                    tooltip: {
+                        valueSuffix: ' B'
+                    },                     
                 }],
                 center: ["40%", "10%"],
                 size: 100,
@@ -432,7 +541,58 @@
                 }
             }]
     });
-    
+
+    var chart_rss = new Highcharts.Chart({
+        chart: {
+                type: 'spline',
+                renderTo: 'pidrss',
+                marginRight: 10,
+        },
+        title: {
+                text: '进程物理内存监控'
+        },
+        xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 150
+        },
+        yAxis: {
+                title: {
+                        text: '大小'
+                },
+                allowDecimals: false,
+        },
+        plotOptions: {
+            series: { 
+                    marker: { 
+                        enabled: false 
+                    } 
+            }, 
+        },
+        tooltip: {
+                formatter: function () {
+                        return '<b>' + this.series.name + '</b><br/>' +
+                                Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                                Highcharts.numberFormat(this.y, 2);
+                }
+        },
+        legend: {
+                layout: 'vertical',
+                floating: true,
+                align: 'left',
+                verticalAlign: 'top',
+                x: 90,
+                y: 45,
+        },
+        credits: {  
+          enabled:false  
+        },  
+        series: [{
+                name: '物理内存',
+                data: []
+        }]
+    });
+    {% endif %}
+
         var chart_cpu = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -490,7 +650,111 @@
                     name: 'system',
                     data: create_data(100),
                     stack: 'cpu'
+            },{
+                type: 'pie',
+                name: '总时间比重',
+                data: [{
+                    name: '用户态时间',
+                    y: {{ data.utime }},
+                    color: Highcharts.getOptions().colors[11],
+                }, {
+                    name: '内核态时间',
+                    y: {{ data.stime }},
+                    color: Highcharts.getOptions().colors[12],
+                }],
+                center: ["15%", "10%"],
+                size: 80,
+                showInLegend: false,
+                dataLabels: {
+                    enabled: false
+                }
             }]
     });
+
+
+   // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('childrentree'));
+    var data1 = {
+        {% if data.ppid == 0 %}
+        "name": "idle(0)",
+        {%else%}
+        "name": "{{threadlist[data.ppid].stat[1]}}({{data.ppid}})",
+        {%endif%}
+        "children": [
+            {% for key in data.threads %}
+            {
+                "name": "{{threadlist[data.threads[key].pid].stat[1]}}({{data.threads[key].pid}})",
+                "children": [
+                    {% for index in data.threads[key].children %}
+                    {
+                         "name": "{{threadlist[index].stat[1]}}({{index}})",
+                    },
+                    {% endfor %}
+                ]
+            },
+            {% endfor %}
+        ]
+    };
+
+    myChart.setOption(option = {
+        tooltip: {
+            trigger: 'item',
+            triggerOn: 'mousemove'
+        },
+        legend: {
+            top: '2%',
+            left: '3%',
+            orient: 'vertical',
+            data: [{
+                name: '父子关系',
+                icon: 'rectangle'
+            }],
+            borderColor: '#c23531'
+        },
+        series:[
+            {
+                type: 'tree',
+
+                name: 'tree1',
+
+                data: [data1],
+
+                top: '8%',
+                left: '2%',
+                bottom: '20%',
+                right: '2%',
+                orient: 'vertical',
+                expandAndCollapse: true,
+                symbolSize: 7,
+
+                label: {
+                    normal: {
+                        position: 'left',
+                        rotate: -90,
+                        verticalAlign: 'middle',
+                        align: 'right',
+                        fontSize: 9,
+                    }
+                },
+
+                leaves: {
+                    label: {
+                        normal: {
+                            position: 'bottom',
+                            rotate: -90,
+                            verticalAlign: 'middle',
+                            align: 'left'
+                        }
+                    }
+                },
+
+                expandAndCollapse: true,
+
+                animationDuration: 550,
+                animationDurationUpdate: 750
+            },
+        ]
+    });
+
 </script>
 {% endblock %}

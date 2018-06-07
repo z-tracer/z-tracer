@@ -23,7 +23,6 @@ def index():
         current_app.g_timer = ScanTimer()
         current_app.g_timer.start()
     
-    
     return render_template('index.html',loadavg = current_app.g_loadavg, stat = current_app.g_stat, \
         meminfo = current_app.g_meminfo, uptime = current_app.g_uptime,cpunum = current_app.g_cpunum)
 
@@ -55,11 +54,15 @@ def interrupts():
 
 @main.route('/process', methods=['GET', 'POST'])
 def process():
+    if not hasattr(current_app,'g_threads'):
+        current_app.g_threads = Processes()
     pslist = {}
-    pslist = g_processes.scan()
-    g_processes.gengv()
-    g_processes.ordered = sorted(pslist.keys())
-    return render_template('process.html', data=pslist, ordered = g_processes.ordered, date=time.time())
+    current_app.g_threads.scanthread()
+    pslist = current_app.g_threads.scan()
+    current_app.g_threads.ordered = sorted(pslist.keys())
+    #current_app.g_threads.gengv()
+    current_app.g_threads.gengraphviz()
+    return render_template('process.html', data=pslist, ordered = current_app.g_threads.ordered, date=time.time())
 
 @main.route('/process_diffcpu', methods=['GET', 'POST'])
 def process_diffcpu():
@@ -82,9 +85,9 @@ def process_diffmem():
         if key in ps_new.process_dict and ps_new.process_dict[key].VmPeak:
             diff = ps_new.process_dict[key].VmRSS - g_processes.process_dict[key].VmRSS
             if diff > 0:
-                ps.append([g_processes.process_dict[key].stat[1],1,diff])
+                ps.append([g_processes.process_dict[key].stat[1]+'('+str(g_processes.process_dict[key].stat[0])+')',1,diff])
             elif diff < 0:
-                ps.append([g_processes.process_dict[key].stat[1],0,abs(diff)])
+                ps.append([g_processes.process_dict[key].stat[1]+'('+str(g_processes.process_dict[key].stat[0])+')',0,abs(diff)])
     g_processes.scan()
     return render_template('process_diffmem.html', data=ps)
 
@@ -94,6 +97,7 @@ def process_monitor():
 
 @main.route('/process/<int:pid>', methods=['GET', 'POST'])
 def process_pid(pid):
+    isthread = 0
     process_one = Process( pid = pid)
     ret = process_one.getstat()
     process_one.getcomm()
@@ -101,7 +105,10 @@ def process_pid(pid):
     process_one.getstatus()
     process_one.getstatm()
     process_one.getmaps()
-    return render_template('pid.html', data=process_one)
+    process_one.getenviron()
+    process_one.getfd()
+    process_one.getthreads()
+    return render_template('pid.html', data=process_one, threadlist = current_app.g_threads.thread_dict)
 
 @main.route('/update/all', methods=['GET', 'POST'])
 def update_all():
@@ -137,7 +144,6 @@ def update_all():
         ps = Process( pid = int(id) )
         ps.getstat()
         ret = ps.getstatus()
-        print(ret)
         return jsonify({'result':'ok','src':ret})
     
     if data =='pidtreemap':

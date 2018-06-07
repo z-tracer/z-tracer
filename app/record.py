@@ -6,6 +6,7 @@ import threading
 import sys
 from . import app
 import time
+import graphviz as gv
 
 def get_procinfo(filename):
     try:
@@ -276,7 +277,6 @@ class Stat():
                 summm=self.intr[i] - oldstat.intr[i]
                 if summm > 0:
                     self.diffintr[i] = summm
-            print(self.diffintr)
 
     def getdata(self,name,num=0):
         if name == 'h_irq' or name == 'h_all':
@@ -527,6 +527,149 @@ class Interrupts():
 
         return 0
 
+class Thread():
+    def __init__(self, **kwargs):
+        self.stat = []
+        self.maps = []
+        self.status = {}
+        self.pid = 1
+        self.ppid = 0
+        self.pgid = 0
+        self.sid = 0
+        self.VmPeak = None
+        self.RssFile = 0
+        self.utime = 0
+        self.stime = 0
+        self.cputime = 0
+        self.time = 0
+        self.runcpu = 0
+        self.comm = ''
+        self.major = 0
+        self.minor = 0
+        self.ctxt = 0
+        self.nctxt = 0
+        self.fdlist = []
+        self.fdnum = 0
+        self.leader = 0
+        self.children = []
+        if kwargs:
+            self.pid = kwargs['pid']
+            self.leader = kwargs['leader']
+    
+    def getstat(self):
+        self.time = int(time.time() * 1000)
+        data = get_procinfo('/proc/%d/task/%d/stat' % (self.leader,self.pid))
+        if data == None:
+            return 
+        data=data[:-1]                   #去除回车
+        first_parenthesis = data.find('(')
+        last_parenthesis = data.rfind(')')
+        temp = data[last_parenthesis+2:]
+        self.stat.append(int(data[0:first_parenthesis-1]))   #获取pid
+        self.stat.append(data[first_parenthesis+1:last_parenthesis]) #获取进程名
+        self.stat.extend(temp.split(' ')) #列表加列表需要使用extend
+        #print(self.stat)
+        self.utime = int(self.stat[13])
+        self.stime = int(self.stat[14])
+        self.cputime = self.utime + self.stime
+        self.runcpu = int(self.stat[38])
+        self.comm = self.stat[1]
+        self.major = int(self.stat[11])
+        self.minor = int(self.stat[9])
+        self.nr_threads = int(self.stat[19])
+        #self.cputime = pow(self.cputime, 1/3)
+        return self.stat
+
+    def getcomm(self):
+        data = get_procinfo('/proc/%d/task/%d/comm' % (self.leader,self.pid))
+        return self.comm
+
+    def getcmdline(self):
+        data = get_procinfo('/proc/%d/task/%d/cmdline' % (self.leader,self.pid))
+        return self.cmdline
+
+    def getenviron(self):
+        data = get_procinfo('/proc/%d/task/%d/environ' % (self.leader,self.pid))
+        return self.environ
+
+    def getfd(self):
+        data = get_procinfo('/proc/%d/task/%d/fd' % (self.leader,self.pid))
+        lists = outputs.split('\n')
+        self.fdlist = lists
+        self.fdnum = len(self.fdlist)
+
+    def getstatus(self):
+        data = get_procinfo('/proc/%d/task/%d/status' % (self.leader,self.pid))
+        if data == None:
+            return
+        data = data.split('\n')
+        for line in data:
+            if line:
+                line=line.replace('\t','')
+                line=line.split(':')
+                self.status[line[0]] = line[1]
+                if line[0] == 'VmPeak':
+                    self.VmPeak = int(self.status['VmPeak'].replace('kB',''))*1024
+                elif line[0] == 'VmSize':
+                    self.VmSize = int(self.status['VmSize'].replace('kB',''))*1024
+                elif line[0] == 'VmHWM':
+                    self.VmHWM = int(self.status['VmHWM'].replace('kB',''))*1024
+                elif line[0] == 'VmRSS':
+                    self.VmRSS = int(self.status['VmRSS'].replace('kB',''))*1024
+                elif line[0] == 'VmData':
+                    self.VmData = int(self.status['VmData'].replace('kB',''))*1024
+                elif line[0] == 'VmStk':
+                    self.VmStk = int(self.status['VmStk'].replace('kB',''))*1024
+                elif line[0] == 'VmLck':
+                    self.VmLck = int(self.status['VmLck'].replace('kB',''))*1024
+                elif line[0] == 'VmPin':
+                    self.VmPin = int(self.status['VmPin'].replace('kB',''))*1024
+                elif line[0] == 'VmExe':
+                    self.VmExe = int(self.status['VmExe'].replace('kB',''))*1024
+                elif line[0] == 'VmLib':
+                    self.VmLib = int(self.status['VmLib'].replace('kB',''))*1024
+                elif line[0] == 'VmPTE':
+                    self.VmPTE = int(self.status['VmPTE'].replace('kB',''))*1024
+                elif line[0] == 'VmSwap':
+                    self.VmSwap = int(self.status['VmSwap'].replace('kB',''))*1024
+                elif line[0] == 'voluntary_ctxt_switches':
+                    self.ctxt = int(self.status['voluntary_ctxt_switches'])
+                elif line[0] == 'nonvoluntary_ctxt_switches':
+                    self.nctxt = int(self.status['nonvoluntary_ctxt_switches'])
+        if self.VmPeak:
+            return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime,self.VmRSS]
+
+    def getstatm(self):
+        data = get_procinfo('/proc/%d/task/%d/statm' % (self.leader,self.pid))
+        if data == None:
+            return
+        data = data.split(' ')
+        self.RssFile = int(data[2]) * 4096   #这里假设页大小为4096
+        print(self.RssFile)
+
+    def getmaps(self):
+        data = get_procinfo('/proc/%d/task/%d/maps' % (self.leader,self.pid))
+        if data == None:
+            return
+        data = data.split('\n')
+        for line in data:
+            if line:
+                line=line.split(' ')
+                while '' in line:
+                    line.remove('')
+                self.maps.append(line)
+        print(self.maps)
+
+    def getchildren(self):
+        data = get_procinfo('/proc/%d/task/%d/children' % (self.leader,self.pid))
+        if data == None:
+            return
+        data = data.split(' ')
+        while '' in data:
+            data.remove('')
+        self.children = list(map(int, data))
+        print(self.children)
+
 class Process():
     def __init__(self, **kwargs):
         self.stat = []
@@ -548,6 +691,10 @@ class Process():
         self.minor = 0
         self.ctxt = 0
         self.nctxt = 0
+        self.fdlist = []
+        self.fdnum = 0
+        self.nr_threads = 0
+        self.threads = {}
         if kwargs:
             self.pid = kwargs['pid']
     
@@ -564,6 +711,7 @@ class Process():
         self.stat.append(data[first_parenthesis+1:last_parenthesis]) #获取进程名
         self.stat.extend(temp.split(' ')) #列表加列表需要使用extend
         #print(self.stat)
+        self.ppid  = int(self.stat[3])
         self.utime = int(self.stat[13])
         self.stime = int(self.stat[14])
         self.cputime = self.utime + self.stime
@@ -571,6 +719,7 @@ class Process():
         self.comm = self.stat[1]
         self.major = int(self.stat[11])
         self.minor = int(self.stat[9])
+        self.nr_threads = int(self.stat[19])
         #self.cputime = pow(self.cputime, 1/3)
         return self.stat
 
@@ -581,6 +730,16 @@ class Process():
     def getcmdline(self):
         self.cmdline = get_procinfo('/proc/%d/cmdline' % (self.pid))
         return self.cmdline
+
+    def getenviron(self):
+        self.environ = get_procinfo('/proc/%d/environ' % (self.pid))
+        return self.environ
+
+    def getfd(self):
+        outputs = get_cmdout('ls /proc/%d/fd' % (self.pid)) 
+        lists = outputs.split('\n')
+        self.fdlist = lists
+        self.fdnum = len(self.fdlist)
 
     def getstatus(self):
         data = get_procinfo('/proc/%d/status' % (self.pid))
@@ -593,40 +752,40 @@ class Process():
                 line=line.split(':')
                 self.status[line[0]] = line[1]
                 if line[0] == 'VmPeak':
-                    self.VmPeak = int(self.status['VmPeak'].replace('kB',''))
+                    self.VmPeak = int(self.status['VmPeak'].replace('kB',''))*1024
                 elif line[0] == 'VmSize':
-                    self.VmSize = int(self.status['VmSize'].replace('kB',''))
+                    self.VmSize = int(self.status['VmSize'].replace('kB',''))*1024
                 elif line[0] == 'VmHWM':
-                    self.VmHWM = int(self.status['VmHWM'].replace('kB',''))
+                    self.VmHWM = int(self.status['VmHWM'].replace('kB',''))*1024
                 elif line[0] == 'VmRSS':
-                    self.VmRSS = int(self.status['VmRSS'].replace('kB',''))
+                    self.VmRSS = int(self.status['VmRSS'].replace('kB',''))*1024
                 elif line[0] == 'VmData':
-                    self.VmData = int(self.status['VmData'].replace('kB',''))
+                    self.VmData = int(self.status['VmData'].replace('kB',''))*1024
                 elif line[0] == 'VmStk':
-                    self.VmStk = int(self.status['VmStk'].replace('kB',''))
+                    self.VmStk = int(self.status['VmStk'].replace('kB',''))*1024
                 elif line[0] == 'VmLck':
-                    self.VmLck = int(self.status['VmLck'].replace('kB',''))
+                    self.VmLck = int(self.status['VmLck'].replace('kB',''))*1024
                 elif line[0] == 'VmPin':
-                    self.VmPin = int(self.status['VmPin'].replace('kB',''))
+                    self.VmPin = int(self.status['VmPin'].replace('kB',''))*1024
                 elif line[0] == 'VmExe':
-                    self.VmExe = int(self.status['VmExe'].replace('kB',''))
+                    self.VmExe = int(self.status['VmExe'].replace('kB',''))*1024
                 elif line[0] == 'VmLib':
-                    self.VmLib = int(self.status['VmLib'].replace('kB',''))
+                    self.VmLib = int(self.status['VmLib'].replace('kB',''))*1024
                 elif line[0] == 'VmPTE':
-                    self.VmPTE = int(self.status['VmPTE'].replace('kB',''))
+                    self.VmPTE = int(self.status['VmPTE'].replace('kB',''))*1024
                 elif line[0] == 'VmSwap':
-                    self.VmSwap = int(self.status['VmSwap'].replace('kB',''))
+                    self.VmSwap = int(self.status['VmSwap'].replace('kB',''))*1024
                 elif line[0] == 'voluntary_ctxt_switches':
                     self.ctxt = int(self.status['voluntary_ctxt_switches'])
                 elif line[0] == 'nonvoluntary_ctxt_switches':
                     self.nctxt = int(self.status['nonvoluntary_ctxt_switches'])
         if self.VmPeak:
-            return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime]
+            return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime,self.VmRSS]
 
     def getstatm(self):
         data = get_procinfo('/proc/%d/statm' % (self.pid))
         data = data.split(' ')
-        self.RssFile = int(data[2]) * 4   #这里假设页大小为4096
+        self.RssFile = int(data[2]) * 4096   #这里假设页大小为4096
         print(self.RssFile)
 
     def getmaps(self):
@@ -641,11 +800,29 @@ class Process():
                     line.remove('')
                 self.maps.append(line)
         print(self.maps)
-        
+
+    def getthreads(self):
+        self.threadcnt = 0
+        outputs = get_cmdout('ls /proc/%d/task' % (self.pid)) 
+        lists = outputs.split('\n')
+        print(lists)
+        for list in lists:
+            if list.isdigit():
+                thread = Thread(pid = int(list),leader = self.pid)
+                ret = thread.getstat()
+                self.threadcnt += 1
+                if ret:
+                    thread.getstatus()
+                    thread.getchildren()
+                    self.threads[thread.pid] = thread
+        print("total thread %d"%(self.threadcnt))
+
 class Processes():
     def __init__(self, **kwargs):
         self.pidcnt = 0   #进程总数，/proc/pid是不包括线程的
+        self.threadcnt = 0   #线程总数
         self.process_dict = {}
+        self.thread_dict = {}
         self.ordered = []
         self.diffcpu = {}
         self.diffprocess = {}
@@ -676,6 +853,30 @@ class Processes():
         self.stat = Stat()
         self.stat.getstat()
         return self.process_dict
+
+    def scanthread(self):
+        self.time = int(time.time() * 1000)
+        self.threadcnt = 0
+        outputs = get_cmdout('ls /proc/') 
+        lists = outputs.split('\n')
+        #print(lists)
+        for list in lists:
+            if list.isdigit():
+                outputs = get_cmdout('ls /proc/%s/task/'%(list)) 
+                thread_lists = outputs.split('\n')
+                for thread_list in thread_lists:
+                    if thread_list != '':
+                        thread = Thread(pid = int(thread_list),leader = int(list))
+                        ret = thread.getstat()
+                        self.threadcnt += 1
+                        if ret:
+                            thread.getstatus()
+                            thread.getchildren()
+                            self.thread_dict[thread.pid] = thread
+        print("total thread %d"%(self.threadcnt))
+        self.stat = Stat()
+        self.stat.getstat()
+        return self.thread_dict
 
     def diff(self,oldstat):
         if oldstat.pidcnt != 0:
@@ -737,7 +938,61 @@ class Processes():
         fh.write("}")
         fh.close()
         os.system("neato -Tsvg -Nfontsize=12 -Elen=1.9 app/static/pstree -o app/static/pstree.svg")
-        
+
+    def gengexf(self):
+        pass
+
+    def gengraphviz(self):
+        dot = gv.Digraph(comment='process tree', engine='dot', format='svg') #首行注释,layout,输出格式
+        dot.graph_attr['rankdir'] = 'LR'
+        dot.attr('node', style='filled')
+        for key in self.process_dict:
+            if self.process_dict[key].stat[40] == '0':
+                color = '#96cdcd3f'
+            elif self.process_dict[key].stat[40] == '1':
+                color = '#cdaf953f'
+            elif self.process_dict[key].stat[40] == '2':
+                color = '#7ccd7c3f'
+            elif self.process_dict[key].stat[40] == '3':
+                color = '#ffa07a3f'
+            elif self.process_dict[key].stat[40] == '5':
+                color = '#6ca6cd3f'
+            else:
+                color = '#FFFFFFFF'
+
+            if self.process_dict[key].nr_threads > 1:
+                cmdline = self.process_dict[key].getcmdline()
+                dot.node('p'+str(self.process_dict[key].stat[0]), \
+                    cmdline.replace('\x00','\n'), color = color,shape='box')
+                dot.edge(self.process_dict[key].stat[3], 'p'+str(self.process_dict[key].stat[0]))
+                self.process_dict[key].getthreads()
+                for th in self.process_dict[key].threads:
+                    if self.process_dict[key].threads[th].stat[40] == '0':
+                        pcolor = '#96cdcd3f'
+                    elif self.process_dict[key].threads[th].stat[40] == '1':
+                        pcolor = '#cdaf953f'
+                    elif self.process_dict[key].threads[th].stat[40] == '2':
+                        pcolor = '#7ccd7c3f'
+                    elif self.process_dict[key].threads[th].stat[40] == '3':
+                        pcolor = '#ffa07a3f'
+                    elif self.process_dict[key].threads[th].stat[40] == '5':
+                        pcolor = '#6ca6cd3f'
+                    else:
+                        pcolor = '#FFFFFFFF'
+                    dot.node(str(self.process_dict[key].threads[th].stat[0]),\
+                     self.process_dict[key].threads[th].stat[1]+'('+str(self.process_dict[key].threads[th].stat[0])+')',\
+                     color = pcolor,shape='proteinstab')
+                    dot.edge('p'+str(self.process_dict[key].stat[0]), str(self.process_dict[key].threads[th].stat[0]))
+                    if self.process_dict[key].stat[3] != self.process_dict[key].threads[th].stat[3]:
+                        print('errrrrrrrrrrrrrrrrrrrrrrrror')
+            else:
+                dot.node(str(self.process_dict[key].stat[0]), \
+                    self.process_dict[key].stat[1]+'('+str(self.process_dict[key].stat[0])+')',\
+                    color = color,shape='ellipse')
+                dot.edge(self.process_dict[key].stat[3], str(self.process_dict[key].stat[0]))
+
+        #print(dot.source) 
+        dot.render('app/static/pstree')
 
 class Meminfo():
     def __init__(self, **kwargs):

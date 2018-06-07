@@ -2,7 +2,7 @@
 {% block title %}ZTracer{% endblock %}
 
 {% block main_content %}
-    <h1 class="page-header">CPU分析</h1>
+    <h1 class="page-header">进程分析</h1>
     <div class="container">
       <div class="row">
         <div class="col-md-12">
@@ -16,14 +16,23 @@
               <th>ppid</th>
               <th>pgid</th>
               <th>sid</th>
+              <th>线程个数</th>
               <th>utime</th>
               <th>stime</th>
-              <th>动态优先级</th>
+              <th>cutime</th>
+              <th>cstime</th>
+              <th>VSS</th>
+              <th>RSS</th>
+              <th>minor</th>
+              <th>major</th>
+              <th>cminor</th>
+              <th>cmajor</th>
               <th>nice</th>
-              <th>线程个数</th>
-              <th>启动时间</th>
+              <th>动态优先级</th>
               <th>实时优先级</th>
               <th>调度策略</th>
+              <th>oncpu</th>
+              <th>启动时间</th>
             </tr>
           </thead>
           <tbody>
@@ -35,14 +44,23 @@
               <td><a href="/process/{{ data[key].stat[3] }}">{{ data[key].stat[3] }}</td>
               <td><a href="/process/{{ data[key].stat[4] }}">{{ data[key].stat[4] }}</td>
               <td><a href="/process/{{ data[key].stat[5] }}">{{ data[key].stat[5] }}</td>
+              <td>{{ data[key].stat[19] }}</td>
               <td>{{ data[key].stat[13] }}</td>
               <td>{{ data[key].stat[14] }}</td>
-              <td>{{ data[key].stat[17] }}</td>
+              <td>{{ data[key].stat[15] }}</td>
+              <td>{{ data[key].stat[16] }}</td>
+              <td>{{ data[key].stat[22] }}</td>
+              <td>{{ data[key].stat[23] }}</td>
+              <td>{{ data[key].stat[9] }}</td>
+              <td>{{ data[key].stat[11] }}</td>
+              <td>{{ data[key].stat[10] }}</td>
+              <td>{{ data[key].stat[12] }}</td>
               <td>{{ data[key].stat[18] }}</td>
-              <td>{{ data[key].stat[19] }}</td>
-              <td>{{ data[key].stat[21] }}</td>
+              <td>{{ data[key].stat[17] }}</td>
               <td>{{ data[key].stat[39] }}</td>
               <td>{{ data[key].stat[40] }}</td>
+              <td>{{ data[key].stat[38] }}</td>
+              <td>{{ data[key].stat[21] }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -77,6 +95,7 @@
       <div  align="center">
       <a class="btn btn-success" href="/process_diffmem">查看最近内存变化</a>
       </div>
+      <div class="col-md-12" id="pstree" style="min-width:400px;min-height:400px"></div>
       </div>
 {% endblock %}
 
@@ -101,7 +120,6 @@
         });
     }
     
-    
     function create_data(len) {
         // 生成初始化空值
         var data = [],time = (new Date()).getTime(),i;
@@ -124,7 +142,6 @@
             chart.tooltip.refresh(points[points.length -1]);
     }
     
-
     var chart_pidtreemap = new Highcharts.Chart({
             chart: {
                     renderTo: 'pidtreemap',
@@ -217,11 +234,11 @@
                     data: [
                         {% for key in ordered %}
                         {
-                                name: '{{ data[key].stat[1]}}',
-                                {% if data[key].VmRSS %}
-                                value:{{ data[key].VmRSS }},
-                                colorValue: 1,
-                                {% endif %}
+                              name: '{{ data[key].stat[1]}}',
+                              {% if data[key].VmRSS %}
+                              value:{{ data[key].VmRSS }},
+                              colorValue: 1,
+                              {% endif %}
                         },
                         {% endfor %}
                     ]
