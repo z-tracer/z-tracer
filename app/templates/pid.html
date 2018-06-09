@@ -3,7 +3,6 @@
 
 {% block main_content %}
     <h1 class="page-header">{{ data.comm }}</h1>
-    <div class="container">
       <div class="row">
         <div class="col-md-12">
 
@@ -80,6 +79,9 @@
             </tr>
           </tbody>
         </table>
+
+        <div class="col-md-12" id="childrentree" style="min-width:400px;min-height:400px"></div>
+
         
         {% if data.nr_threads > 1%}
         <table class="table table-condensed">
@@ -215,8 +217,8 @@
         <div class="col-md-12" id="pidvmmem" style="min-width:400px;height:300px"></div>
         <div class="col-md-12" id="pidrss" style="min-width:400px;height:300px"></div>
         <div class="col-md-12" id="pidcputime" style="min-width:400px;height:300px"></div>
-        <div class="col-md-12" id="childrentree" style="min-width:400px;min-height:400px"></div>
-    </div>
+        <div class="col-md-12" id="threadutime" style="min-width:400px;height:300px"></div>
+        <div class="col-md-12" id="threadstime" style="min-width:400px;height:300px"></div>
 {% endblock %}
 
 
@@ -245,7 +247,6 @@
                     y = data.src[4];
                     series[4].addPoint([x, y], false, true);
                     chart.redraw()
-                    
 
                     var series_cpu = chart_cpu.series;
                     var y1 = data.src[5]
@@ -265,11 +266,124 @@
                         chart_rss.series[0].addPoint([x, data.src[7]], true, false); 
                     //document.getElementById("chart1").src=data.src;
                     //document.getElementById("chart2").src="/static/loadavg.svg?t=" + Date();
+
+                    if(data.threadu)
+                    {
+                        var found = 0
+                        for( var addseries of chart_threadutime.series)
+                        {
+                            for(var pid in data.threadu)
+                            {
+                                if (addseries.name == pid)
+                                {
+                                    found = 1;
+                                    addseries.addPoint([x, data.threadu[pid]-threadutime[pid]], false, true);
+                                }
+                            }
+
+                            if(found == 0)
+                                addseries.addPoint([x, 0], false, true);
+
+                            if(threadulasttime[ parseInt(addseries.name)])
+                                if(x - threadulasttime[parseInt(addseries.name)] > 120 * 1000)
+                                    addseries.remove();
+                        }
+
+                        for(var pid in data.threadu)
+                        {
+                            var val = data.threadu[pid]
+                            if(threadutime[pid])
+                            {
+                                if(val - threadutime[pid] > 0)
+                                {
+                                    for( var addseries of chart_threadutime.series)
+                                    {
+                                        if (addseries.name == pid)
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    if(!addseries || addseries.name != pid)
+                                    {
+                                        var newseries=new Array();
+                                        newseries.name = pid;
+                                        newseries.data = create_datax(120,x); 
+                                        chart_threadutime.addSeries(newseries);  
+                                    }
+                                    threadulasttime[pid] = x
+                                }
+                            }
+                            threadutime[pid] = data.threadu[pid]                                
+                        }
+
+                        chart_threadutime.redraw();
+                    }
+
+                    if(data.threads)
+                    {
+                        var found = 0
+                        for( var addseries of chart_threadstime.series)
+                        {
+                            for(var pid in data.threads)
+                            {
+                                if (addseries.name == pid)
+                                {
+                                    found = 1;
+                                    addseries.addPoint([x, data.threads[pid]-threadstime[pid]], false, true);
+                                    break;
+                                }
+                            }
+
+                            if(found == 0)
+                                addseries.addPoint([x, 0], false, true);
+
+                            if(threadslasttime[ parseInt(addseries.name)])
+                                if(x - threadslasttime[parseInt(addseries.name)] > 120 * 1000)
+                                    addseries.remove();
+                        }
+
+                        for(var pid in data.threads)
+                        {
+                            var val = data.threads[pid]
+                            if(threadstime[pid])
+                            {
+                                if(val - threadstime[pid] > 0)
+                                {
+                                    for( var addseries of chart_threadstime.series)
+                                    {
+                                        if (addseries.name == pid)
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    if(!addseries || addseries.name != pid)
+                                    {
+                                        var newseries=new Array();
+                                        newseries.name = pid;
+                                        newseries.data = create_datax(120,x); 
+                                        chart_threadstime.addSeries(newseries);  
+                                    }
+                                    threadslasttime[pid] = x
+                                }
+                            }
+                            threadstime[pid] = data.threads[pid]                                
+                        }
+
+                        chart_threadstime.redraw();
+                    }
                 }
             });
     }
+
     var last_utime={{ data.utime }};
     var last_stime={{data.stime}};
+    var threadutime=new Array();
+    var threadstime=new Array();
+    var threadulasttime=new Array();
+    var threadslasttime=new Array();
+
     function create_data(len) {
         // 生成初始化空值
         var data = [],time = (new Date()).getTime(),i;
@@ -280,7 +394,20 @@
                 });
         }
         return data;
+    } 
+
+    function create_datax(len,x) {
+        // 生成初始化空值
+        var data = [],time = x,i;
+        for (i = -len; i <= 0; i += 1) {
+                data.push({
+                        x: time,
+                        y: 0 //Math.random()
+                });
+        }
+        return data;
     }
+
     
     Highcharts.setOptions({
             global: {
@@ -316,6 +443,7 @@
                     },
                     min: 0,
                     allowDecimals: false,
+                    reversedStacks:false,  //反转堆叠图，从下到上新增数据条
             },
             plotOptions: {
                 area: {
@@ -345,27 +473,27 @@
             series: [{
                     type: 'spline',
                     name: 'total vm',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'top'
             },
             {
                     name: 'stk',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'vm'
             },
             {
                     name: 'data',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'vm'
             },
             {
                     name: 'lib',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'vm'
             },
             {
                     name: 'exe',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'vm'
             }]
     });
@@ -624,11 +752,8 @@
                 }, 
             },
             tooltip: {
-                    formatter: function () {
-                            return '<b>' + this.series.name + '</b><br/>' +
-                                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                                    Highcharts.numberFormat(this.y, 2);
-                    }
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
             },
             legend: {
                     layout: 'vertical',
@@ -643,12 +768,12 @@
             },  
             series: [{
                     name: 'user',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'cpu'
             },
             {
                     name: 'system',
-                    data: create_data(100),
+                    data: create_data(120),
                     stack: 'cpu'
             },{
                 type: 'pie',
@@ -672,6 +797,103 @@
     });
 
 
+        var chart_threadutime = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'threadutime',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 'u运行时间监控'
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: 'jiffies'
+                    },
+                    min: 0,
+                    allowDecimals: false,
+            },
+            plotOptions: {
+                area: {
+                        stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false 
+                        } 
+                }, 
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [
+            ]
+    });
+
+        var chart_threadstime = new Highcharts.Chart({
+            chart: {
+                    type: 'area',
+                    renderTo: 'threadstime',
+                    marginRight: 10,
+            },
+            title: {
+                    text: 's运行时间监控'
+            },
+            xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+            },
+            yAxis: {
+                    title: {
+                            text: 'jiffies'
+                    },
+                    min: 0,
+                    allowDecimals: false,
+            },
+            plotOptions: {
+                area: {
+                        stacking: 'normal'
+                },
+                series: { 
+                        marker: { 
+                            enabled: false 
+                        } 
+                }, 
+            },
+            tooltip: {
+                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:,.0f}</b> <br/>',
+                    shared: true
+            },
+            legend: {
+                    layout: 'vertical',
+                    floating: true,
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 90,
+                    y: 45,
+            },
+            credits: {  
+              enabled:false  
+            },  
+            series: [
+            ]
+    });
    // 基于准备好的dom，初始化echarts实例
     var myChart = echarts.init(document.getElementById('childrentree'));
     var data1 = {

@@ -61,7 +61,7 @@ def process():
     pslist = current_app.g_threads.scan()
     current_app.g_threads.ordered = sorted(pslist.keys())
     #current_app.g_threads.gengv()
-    current_app.g_threads.gengraphviz()
+    #current_app.g_threads.gengraphviz()
     return render_template('process.html', data=pslist, ordered = current_app.g_threads.ordered, date=time.time())
 
 @main.route('/process_diffcpu', methods=['GET', 'POST'])
@@ -141,10 +141,19 @@ def update_all():
         return jsonify({'result':'ok','loadavg':ret,'stat':diff})
     
     if data =='pidvmmem':
+        threadutime = {}
+        threadstime = {}
         ps = Process( pid = int(id) )
         ps.getstat()
         ret = ps.getstatus()
-        return jsonify({'result':'ok','src':ret})
+        if ps.nr_threads > 1:
+            ps.getthreads()
+            for key in ps.threads:
+                threadutime[ps.threads[key].pid] = ps.threads[key].utime
+                threadstime[ps.threads[key].pid] = ps.threads[key].stime
+        print(threadutime)
+        print(threadstime)
+        return jsonify({'result':'ok','src':ret,'threadu':threadutime,'threads':threadstime})
     
     if data =='pidtreemap':
         ps = []
