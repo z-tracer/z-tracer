@@ -7,28 +7,49 @@ import sys
 from . import app
 import time
 import graphviz as gv
+from app.main.zclient import Zclient
 
 def get_procinfo(filename):
-    try:
-      fh = open(filename, 'r')
-      data = fh.read()
-    except IOError:
-      print("Error: cant open file %s" % (filename))
-      return None
+    if 1:
+        params = {}
+        params['path'] = filename
+        client = Zclient()
+        data = client.sendRequest('readfile',params)
+        if data != None:
+            if len(data) == 0:
+                return None
+        return data
     else:
-      fh.close()
-    return data
+        try:
+          fh = open(filename, 'r')
+          data = fh.read()
+        except IOError:
+          print("Error: cant open file %s" % (filename))
+          return None
+        else:
+          fh.close()
+        return data
 
 def get_cmdout(cmdline):
-    try:
-      file = os.popen(cmdline) 
-      outputs = file.read()
-    except IOError:
-      print("Error: cant run cmd %s" % (cmdline))
-      return None
+    if 1:
+        params = {}
+        params['cmd'] = cmdline
+        client = Zclient()
+        outputs = client.sendRequest('runcmd',params)
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs
     else:
-      file.close()
-    return outputs
+        try:
+          file = os.popen(cmdline) 
+          outputs = file.read()
+        except IOError:
+          print("Error: cant run cmd %s" % (cmdline))
+          return None
+        else:
+          file.close()
+        return outputs
 
 class RecordDate():
     def __init__(self, **kwargs):
@@ -863,16 +884,19 @@ class Processes():
         for list in lists:
             if list.isdigit():
                 outputs = get_cmdout('ls /proc/%s/task/'%(list)) 
-                thread_lists = outputs.split('\n')
-                for thread_list in thread_lists:
-                    if thread_list != '':
-                        thread = Thread(pid = int(thread_list),leader = int(list))
-                        ret = thread.getstat()
-                        self.threadcnt += 1
-                        if ret:
-                            thread.getstatus()
-                            thread.getchildren()
-                            self.thread_dict[thread.pid] = thread
+                if outputs == None:
+                    print('ls /proc/%s/task/ is none '%(list))
+                else:
+                    thread_lists = outputs.split('\n')
+                    for thread_list in thread_lists:
+                        if thread_list != '':
+                            thread = Thread(pid = int(thread_list),leader = int(list))
+                            ret = thread.getstat()
+                            self.threadcnt += 1
+                            if ret:
+                                thread.getstatus()
+                                thread.getchildren()
+                                self.thread_dict[thread.pid] = thread
         print("total thread %d"%(self.threadcnt))
         self.stat = Stat()
         self.stat.getstat()
@@ -1082,7 +1106,7 @@ class ScanTimer():
         if len(current_app.g_interrupts.data) > 0:
             newinterrupts.diff(current_app.g_interrupts.data[-1])
         current_app.g_interrupts.add(newinterrupts)
-
+        
         #processes
         if not hasattr(current_app,'g_processes'):
             current_app.g_processes = RecordDate()
@@ -1091,7 +1115,7 @@ class ScanTimer():
         if len(current_app.g_processes.data) > 0:
             newprocesses.diff(current_app.g_processes.data[-1])
         current_app.g_processes.add(newprocesses)
-
+        
         #meminfo
         if not hasattr(current_app,'g_meminfo'):
             current_app.g_meminfo = RecordDate()

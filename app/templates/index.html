@@ -57,6 +57,7 @@
                         //activeLastPointToolip(chart);
                         chart_nr_threads.series[0].addPoint([x, data.loadavg[1][3]], true, true);
                     }
+                {% if stat != None %}
                     if(data.stat)
                     {
                         var series = chart_stat.series;
@@ -184,7 +185,8 @@
                         chart_fork.redraw();
                         //activeLastPointToolip(chart_fork);
                     }
-
+                {% endif %}
+                {% if meminfo != None %}
                     if(data.mem)
                     {
                         var series = chart_mem.series;
@@ -208,7 +210,8 @@
                         newVal = (1-y1/data.mem[1][0])*100;
                         point.update(Math.round(newVal));
                     }
-
+                {% endif %}
+                {% if uptime != None %}
                     if(data.uptime)
                     {
                         var series = chart_uptime.series;
@@ -219,7 +222,7 @@
                         series[1].addPoint([x, y2], false, true); 
                         chart_uptime.redraw();
                     }
-
+                {% endif %}
                 }
         });
     }
@@ -260,6 +263,7 @@
     
     var x_stat = 0,x_mem = 0, x_softirq = 0, x_irq=0;
 
+    {% if loadavg != None %}
     var chart = new Highcharts.Chart({
             chart: {
                     type: 'spline',
@@ -325,7 +329,9 @@
                     data:  {{ loadavg.getline('load15') }}
             }]
     });
-    
+    {% endif %}
+
+    {% if stat != None %}
     var chart_stat = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -657,7 +663,9 @@
                     data:  {{ stat.getline('blocked') }}
             }]
     });
+    {% endif %}
 
+    {% if meminfo != None %}
     var chart_mem = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -729,9 +737,10 @@
                     data:  {{ meminfo.getline('buffer') }},
             }]
     });
+    {% endif %}
 
-
-var chart_scpu = Highcharts.chart({
+    {% if stat != None %}
+    var chart_scpu = Highcharts.chart({
         chart: {
             type: 'solidgauge',
             renderTo: 'scpu',
@@ -791,9 +800,9 @@ var chart_scpu = Highcharts.chart({
                         valueSuffix: ' %'
                 }
         }]
-});
+    });
 
-var chart_smem = Highcharts.chart({
+    var chart_smem = Highcharts.chart({
         chart: {
             type: 'solidgauge',
             renderTo: 'smem',
@@ -853,8 +862,10 @@ var chart_smem = Highcharts.chart({
                         valueSuffix: ' %'
                 }
         }]
-});
+    });
+    {% endif %}
 
+    {% if loadavg != None %}
     var chart_nr_threads = new Highcharts.Chart({
             chart: {
                     type: 'spline',
@@ -906,7 +917,9 @@ var chart_smem = Highcharts.chart({
                     data: {{ loadavg.getline('nr_threads') }}
             }]
     });
+    {% endif %}
 
+    {% if uptime != None %}
     var chart_uptime = new Highcharts.Chart({
             chart: {
                     type: 'spline',
@@ -962,7 +975,9 @@ var chart_smem = Highcharts.chart({
                     data: {{ uptime.getline('idletime',cpunum) }}
             }]
     });
+    {% endif %}
 
+    {% if stat != None %}
         chart_irqall = new Highcharts.Chart({
             chart: {
                     type: 'area',
@@ -1031,5 +1046,6 @@ var chart_smem = Highcharts.chart({
             {% endfor %}
             ]
     });
+    {% endif %}
 </script>
 {% endblock %}
