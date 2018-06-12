@@ -420,9 +420,9 @@ class Softirqs():
                     num = 2
                 elif 'NET_RX' in line[0]:
                     num = 3
-                elif 'BLOCK' in line[0]:
+                elif 'BLOCK' in line[0] and 'POLL' not in line[0]:
                     num = 4
-                elif 'IRQ_POLL' in line[0]:
+                elif 'POLL' in line[0]:#new:IRQ_POLL ,old:BLOCK_IOPOLL
                     num = 5
                 elif 'TASKLET' in line[0]:
                     num = 6
