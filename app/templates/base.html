@@ -36,6 +36,10 @@
                 <li><a href="#">磁盘</a></li>
                 <li><a href="#">驱动</a></li>
             </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ url_for('main.profile') }}">设置</a></li>
+                <li><a href="#">帮助</a></li>
+            </ul>
         </div>
     </div>
 </div>
@@ -47,5 +51,4 @@
 
 {% block scripts %}
 {{ super() }}
-{{ moment.include_moment() }}
 {% endblock %}

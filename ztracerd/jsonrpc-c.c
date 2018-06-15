@@ -36,7 +36,7 @@ static int send_response(struct jrpc_connection * conn, char *response) {
 	if (conn->debug_level > 1)
 		printf("JSON Response:\n%s\n", response);
 	write(fd, response, strlen(response));
-	write(fd, "\n", 1);
+	//write(fd, "\n", 1);
 	return 0;
 }
 

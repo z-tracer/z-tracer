@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Z-Tracer{% endblock %}
+
+{% block content %}
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endfor %}
+
+      <div class="row">
+        <div class="col-md-12">
+        <table class="table table-condensed table-striped">
+          <caption><h2>设备信息</h2></caption>
+          <thead>
+            <tr>
+              <th>地址</th>
+              <th>端口</th>
+              <th>采样间隔</th>
+              <th>采样长度</th>
+              <th>连接状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if devices%}
+            {% for key in devices %}
+            <tr>
+              <td>{{ devices[key].ip }}</td>
+              <td>{{ devices[key].port }}</td>
+              <td>{{ devices[key].intval }}</td>
+              <td>{{ devices[key].samplecnt }}</td>
+              <td>{{ devices[key].connect }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <div class="col-md-12">
+        <div class="page-header">
+            <h2>设置参数</h2>
+        </div>
+        <div class="col-md-4">
+            {{ wtf.quick_form(form) }}
+        </div>
+      </div>
+    </div>
+{% endblock %}

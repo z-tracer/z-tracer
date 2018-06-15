@@ -4,7 +4,7 @@ from app import create_app
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager, Shell
 
-app = create_app()
+app = create_app('default')
 manager = Manager(app) #为flask框架提供命令行支持
 #migrate = Migrate(app, db)
 
@@ -14,5 +14,4 @@ manager.add_command("shell",Shell(make_context=make_shell_context))#挂接回调
 manager.add_command('db', MigrateCommand) #用于支持命令行db操作
 
 if __name__ == '__main__':
-    #scan_timer()
     manager.run()

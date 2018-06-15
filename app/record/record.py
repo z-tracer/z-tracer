@@ -4,86 +4,10 @@ import os,random
 import pygal
 import threading
 import sys
-from . import app
 import time
 import graphviz as gv
-from app.main.zclient import Zclient
+from app.zclient.zclient import Zclient
 
-def get_procinfo(filename):
-    if 1:
-        params = {}
-        params['path'] = filename
-        client = Zclient()
-        data = client.sendRequest('readfile',params)
-        if data != None:
-            if len(data) == 0:
-                return None
-        return data
-    else:
-        try:
-          fh = open(filename, 'r')
-          data = fh.read()
-        except IOError:
-          print("Error: cant open file %s" % (filename))
-          return None
-        else:
-          fh.close()
-        return data
-
-def get_cmdout(cmdline):
-    if 1:
-        params = {}
-        params['cmd'] = cmdline
-        client = Zclient()
-        outputs = client.sendRequest('runcmd',params)
-        if outputs != None:
-            if len(outputs) == 0:
-                return None
-        return outputs
-    else:
-        try:
-          file = os.popen(cmdline) 
-          outputs = file.read()
-        except IOError:
-          print("Error: cant run cmd %s" % (cmdline))
-          return None
-        else:
-          file.close()
-        return outputs
-
-class RecordDate():
-    def __init__(self, **kwargs):
-        self.data = []
-        self.len = 120
-        self.cnt = 0
-        if kwargs:
-            self.len = kwargs['len']
-
-    def add(self, val):
-        if self.cnt >= self.len:
-            self.data.pop(0)
-        else:
-            self.cnt+=1
-        self.data.append(val)
-        
-    def dump(self):
-        for val in self.data:
-            print(val.getdata('all'))
-    
-    def getlast(self, name, num=0):
-        return [self.data[-1].time, self.data[-1].getdata(name, num)]
-        
-    def getline(self, name,num=0):
-        ret = []
-        d = self.len - self.cnt
-        for val in self.data:
-            if d > 0:  #数据不够时填充
-                for i in range(d):
-                    ret.append([val.time,0])
-                d = 0
-            ret.append([val.time,val.getdata(name, num)])
-        return ret
-    
 #定义二维数组，存放固定长度的数据
 class Record():
     data = []
@@ -108,16 +32,17 @@ class Record():
 class Loadavg():
     rec = Record(rows=3,columns=50)
 
-    def __init__(self, **kwargs):
+    def __init__(self, zclient,**kwargs):
         self.load1 = 0 
         self.load5 = 0
         self.load15 = 0
         self.time = 0
         self.nr_threads = 0  #所有进程线程总数
-    
+        self.zclient = zclient
+
     def update(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/loadavg')
+        data = self.zclient.get_procinfo('/proc/loadavg')
         if data == None:
             return
         data = data.split(' ')
@@ -161,13 +86,14 @@ class Loadavg():
         return line_chart.render_data_uri() #编码成base uri格式，以嵌入到html代码中
 
 class Uptime():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient, **kwargs):
         self.uptime = 0  #系统启动以来的时间
         self.idletime = 0 #所有cpu空闲时间之和
+        self.zclient = zclient
 
     def update(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/uptime')
+        data = self.zclient.get_procinfo('/proc/uptime')
         if data == None:
             return
         data = data.split(' ')
@@ -183,7 +109,7 @@ class Uptime():
             return [self.uptime,self.idletime/num]
 
 class Stat():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient, **kwargs):
         self.cpunum = 0
         self.cpu = {}
         self.total_cputime = {}
@@ -203,10 +129,11 @@ class Stat():
         self.diffintr = {}
         self.diffpercpu = {}
         self.difftotal_cputime = {}
+        self.zclient = zclient
 
-    def getstat(self):
+    def update(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/stat')
+        data = self.zclient.get_procinfo('/proc/stat')
         if data == None:
             return
         data = data.split('\n')
@@ -389,15 +316,16 @@ class Stat():
         return 0
 
 class Softirqs():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient,**kwargs):
         self.softirq = {}
         self.diffsoftirq = {}
         self.time = 0
         self.cpunum = 0
-    
+        self.zclient = zclient
+
     def update(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/softirqs')
+        data = self.zclient.get_procinfo('/proc/softirqs')
         if data == None:
             return
         data = data.split('\n')
@@ -484,16 +412,17 @@ class irq():
         self.affinity = 0
 
 class Interrupts():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient,**kwargs):
         self.interrupts = []
         self.diffirq = {}
         self.time = 0
         self.cpunum = 0
         self.irqnum = 0
-    
+        self.zclient = zclient
+
     def update(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/interrupts')
+        data = self.zclient.get_procinfo('/proc/interrupts')
         if data == None:
             return
         data = data.split('\n')
@@ -548,8 +477,50 @@ class Interrupts():
 
         return 0
 
+class Meminfo():
+    def __init__(self, zclient,**kwargs):
+        self.MemTotal = []
+        self.meminfo = {}
+        self.time = 0
+        self.zclient = zclient
+
+    def update(self):
+        self.time = int(time.time() * 1000)
+        data = self.zclient.get_procinfo('/proc/meminfo')
+        if data == None:
+            return
+        data = data.split('\n')
+        for line in data:
+            if line:
+                line=line.replace(' ','')
+                line=line.split(':')
+                iskB = 0
+                if 'kB' in line[1]:
+                    iskB = 1
+                if iskB == 1:
+                    self.meminfo[line[0]] = int(line[1].replace('kB','')) * 1024
+                else:
+                    self.meminfo[line[0]] = int(line[1])
+
+    def getdata(self,name,num=0):
+        if len(self.meminfo) > 0 :
+            if name == 'total':
+                return self.meminfo['MemTotal']
+            elif name == 'free':
+                return self.meminfo['MemFree']
+            elif name == 'cache':
+                return self.meminfo['Cached']
+            elif name == 'buffer':
+                return self.meminfo['Buffers']
+            elif name == 'used':
+                return self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']
+            elif name == 'mem':
+                return [self.meminfo['MemTotal'],self.meminfo['MemFree'],self.meminfo['Cached'],self.meminfo['Buffers'],
+                self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']]
+        return 0
+
 class Thread():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient, **kwargs):
         self.stat = []
         self.maps = []
         self.status = {}
@@ -573,13 +544,14 @@ class Thread():
         self.fdnum = 0
         self.leader = 0
         self.children = []
+        self.zclient = zclient
         if kwargs:
             self.pid = kwargs['pid']
             self.leader = kwargs['leader']
     
     def getstat(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/%d/task/%d/stat' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/stat' % (self.leader,self.pid))
         if data == None:
             return 
         data=data[:-1]                   #去除回车
@@ -602,25 +574,25 @@ class Thread():
         return self.stat
 
     def getcomm(self):
-        data = get_procinfo('/proc/%d/task/%d/comm' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/comm' % (self.leader,self.pid))
         return self.comm
 
     def getcmdline(self):
-        data = get_procinfo('/proc/%d/task/%d/cmdline' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/cmdline' % (self.leader,self.pid))
         return self.cmdline
 
     def getenviron(self):
-        data = get_procinfo('/proc/%d/task/%d/environ' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/environ' % (self.leader,self.pid))
         return self.environ
 
     def getfd(self):
-        data = get_procinfo('/proc/%d/task/%d/fd' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/fd' % (self.leader,self.pid))
         lists = outputs.split('\n')
         self.fdlist = lists
         self.fdnum = len(self.fdlist)
 
     def getstatus(self):
-        data = get_procinfo('/proc/%d/task/%d/status' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/status' % (self.leader,self.pid))
         if data == None:
             return
         data = data.split('\n')
@@ -661,7 +633,7 @@ class Thread():
             return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime,self.VmRSS]
 
     def getstatm(self):
-        data = get_procinfo('/proc/%d/task/%d/statm' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/statm' % (self.leader,self.pid))
         if data == None:
             return
         data = data.split(' ')
@@ -669,7 +641,7 @@ class Thread():
         print(self.RssFile)
 
     def getmaps(self):
-        data = get_procinfo('/proc/%d/task/%d/maps' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/maps' % (self.leader,self.pid))
         if data == None:
             return
         data = data.split('\n')
@@ -682,7 +654,7 @@ class Thread():
         print(self.maps)
 
     def getchildren(self):
-        data = get_procinfo('/proc/%d/task/%d/children' % (self.leader,self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/task/%d/children' % (self.leader,self.pid))
         if data == None:
             return
         data = data.split(' ')
@@ -692,7 +664,7 @@ class Thread():
         print(self.children)
 
 class Process():
-    def __init__(self, **kwargs):
+    def __init__(self, zclient,**kwargs):
         self.stat = []
         self.maps = []
         self.status = {}
@@ -716,12 +688,13 @@ class Process():
         self.fdnum = 0
         self.nr_threads = 0
         self.threads = {}
+        self.zclient = zclient
         if kwargs:
             self.pid = kwargs['pid']
     
     def getstat(self):
         self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/%d/stat' % (self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/stat' % (self.pid))
         if data == None:
             return 
         data=data[:-1]                   #去除回车
@@ -745,25 +718,25 @@ class Process():
         return self.stat
 
     def getcomm(self):
-        self.comm = get_procinfo('/proc/%d/comm' % (self.pid))
+        self.comm = self.zclient.get_procinfo('/proc/%d/comm' % (self.pid))
         return self.comm
 
     def getcmdline(self):
-        self.cmdline = get_procinfo('/proc/%d/cmdline' % (self.pid))
+        self.cmdline = self.zclient.get_procinfo('/proc/%d/cmdline' % (self.pid))
         return self.cmdline
 
     def getenviron(self):
-        self.environ = get_procinfo('/proc/%d/environ' % (self.pid))
+        self.environ = self.zclient.get_procinfo('/proc/%d/environ' % (self.pid))
         return self.environ
 
     def getfd(self):
-        outputs = get_cmdout('ls /proc/%d/fd' % (self.pid)) 
+        outputs = self.zclient.get_cmdout('ls /proc/%d/fd' % (self.pid)) 
         lists = outputs.split('\n')
         self.fdlist = lists
         self.fdnum = len(self.fdlist)
 
     def getstatus(self):
-        data = get_procinfo('/proc/%d/status' % (self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/status' % (self.pid))
         if data == None:
             return
         data = data.split('\n')
@@ -804,13 +777,13 @@ class Process():
             return [self.VmSize,self.VmStk,self.VmData,self.VmLib,self.VmExe,self.utime,self.stime,self.VmRSS]
 
     def getstatm(self):
-        data = get_procinfo('/proc/%d/statm' % (self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/statm' % (self.pid))
         data = data.split(' ')
         self.RssFile = int(data[2]) * 4096   #这里假设页大小为4096
         print(self.RssFile)
 
     def getmaps(self):
-        data = get_procinfo('/proc/%d/maps' % (self.pid))
+        data = self.zclient.get_procinfo('/proc/%d/maps' % (self.pid))
         if data == None:
             return
         data = data.split('\n')
@@ -824,7 +797,7 @@ class Process():
 
     def getthreads(self):
         self.threadcnt = 0
-        outputs = get_cmdout('ls /proc/%d/task' % (self.pid)) 
+        outputs = self.zclient.get_cmdout('ls /proc/%d/task' % (self.pid)) 
         lists = outputs.split('\n')
         print(lists)
         for list in lists:
@@ -839,7 +812,7 @@ class Process():
         print("total thread %d"%(self.threadcnt))
 
 class Processes():
-    def __init__(self, **kwargs):
+    def __init__(self,zclient,**kwargs):
         self.pidcnt = 0   #进程总数，/proc/pid是不包括线程的
         self.threadcnt = 0   #线程总数
         self.process_dict = {}
@@ -853,44 +826,46 @@ class Processes():
         self.diffctxt = {}
         self.diffnctxt = {}
         self.time = 0
+        self.zclient = zclient
         if kwargs:
             pass
 
     def scan(self):
         self.time = int(time.time() * 1000)
         self.pidcnt = 0
-        outputs = get_cmdout('ls /proc/') 
+        outputs = self.zclient.get_cmdout('ls /proc/') 
         lists = outputs.split('\n')
         #print(lists)
         for list in lists:
             if list.isdigit():
-                process = Process(pid = int(list))
+                process = Process(self.zclient, pid = int(list))
                 ret = process.getstat()
                 self.pidcnt += 1
                 if ret:
                     process.getstatus()
                     self.process_dict[process.pid] = process
         print("total process %d"%(self.pidcnt))
-        self.stat = Stat()
-        self.stat.getstat()
+        self.stat = Stat(self.zclient)
+        self.stat.update()
         return self.process_dict
 
     def scanthread(self):
         self.time = int(time.time() * 1000)
         self.threadcnt = 0
-        outputs = get_cmdout('ls /proc/') 
+        outputs = self.zclient.get_cmdout('ls /proc/') 
         lists = outputs.split('\n')
         #print(lists)
         for list in lists:
             if list.isdigit():
-                outputs = get_cmdout('ls /proc/%s/task/'%(list)) 
+                outputs = self.zclient.get_cmdout('ls /proc/%s/task/'%(list)) 
                 if outputs == None:
                     print('ls /proc/%s/task/ is none '%(list))
                 else:
                     thread_lists = outputs.split('\n')
                     for thread_list in thread_lists:
                         if thread_list != '':
-                            thread = Thread(pid = int(thread_list),leader = int(list))
+                            print(thread_lists)
+                            thread = Thread(self.zclient, pid = int(thread_list),leader = int(list))
                             ret = thread.getstat()
                             self.threadcnt += 1
                             if ret:
@@ -898,8 +873,8 @@ class Processes():
                                 thread.getchildren()
                                 self.thread_dict[thread.pid] = thread
         print("total thread %d"%(self.threadcnt))
-        self.stat = Stat()
-        self.stat.getstat()
+        self.stat = Stat(self.zclient)
+        self.stat.update()
         return self.thread_dict
 
     def diff(self,oldstat):
@@ -1018,116 +993,3 @@ class Processes():
         #print(dot.source) 
         dot.render('app/static/pstree')
 
-class Meminfo():
-    def __init__(self, **kwargs):
-        self.MemTotal = []
-        self.meminfo = {}
-        self.time = 0
-
-    def update(self):
-        self.time = int(time.time() * 1000)
-        data = get_procinfo('/proc/meminfo')
-        if data == None:
-            return
-        data = data.split('\n')
-        for line in data:
-            if line:
-                line=line.replace(' ','')
-                line=line.split(':')
-                iskB = 0
-                if 'kB' in line[1]:
-                    iskB = 1
-                if iskB == 1:
-                    self.meminfo[line[0]] = int(line[1].replace('kB','')) * 1024
-                else:
-                    self.meminfo[line[0]] = int(line[1])
-
-    def getdata(self,name,num=0):
-        if len(self.meminfo) > 0 :
-            if name == 'total':
-                return self.meminfo['MemTotal']
-            elif name == 'free':
-                return self.meminfo['MemFree']
-            elif name == 'cache':
-                return self.meminfo['Cached']
-            elif name == 'buffer':
-                return self.meminfo['Buffers']
-            elif name == 'used':
-                return self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']
-            elif name == 'mem':
-                return [self.meminfo['MemTotal'],self.meminfo['MemFree'],self.meminfo['Cached'],self.meminfo['Buffers'],
-                self.meminfo['MemTotal'] - self.meminfo['Buffers'] - self.meminfo['Cached'] - self.meminfo['MemFree']]
-        return 0
-
-
-class ScanTimer():
-    timer = None
-    intval = 1
-
-    def start(self):
-        self.scan_process()
-        timer = threading.Timer(self.intval, self.start)
-        timer.start()
-
-    def scan_process(self):
-        ctx=app.app_context()  
-        ctx.push() 
-        #loadavg
-        if not hasattr(current_app,'g_loadavg'):
-            current_app.g_loadavg = RecordDate()
-        loadavg = Loadavg()
-        loadavg.update()
-        current_app.g_loadavg.add(loadavg)
-        
-        #stat
-        if not hasattr(current_app,'g_stat'):
-            current_app.g_stat = RecordDate()
-        newstat = Stat()
-        newstat.getstat()
-        current_app.g_cpunum = newstat.cpunum
-        if len(current_app.g_stat.data) > 0:
-            newstat.diff(current_app.g_stat.data[-1])
-        current_app.g_stat.add(newstat)
-        
-        #softirqs
-        if not hasattr(current_app,'g_softirqs'):
-            current_app.g_softirqs = RecordDate()
-        newsoftirqs = Softirqs()
-        newsoftirqs.update()
-        if len(current_app.g_softirqs.data) > 0:
-            newsoftirqs.diff(current_app.g_softirqs.data[-1])
-        current_app.g_softirqs.add(newsoftirqs)
-        
-        #interrupts
-        if not hasattr(current_app,'g_interrupts'):
-            current_app.g_interrupts = RecordDate()
-        newinterrupts = Interrupts()
-        newinterrupts.update()
-        if len(current_app.g_interrupts.data) > 0:
-            newinterrupts.diff(current_app.g_interrupts.data[-1])
-        current_app.g_interrupts.add(newinterrupts)
-        
-        #processes
-        if not hasattr(current_app,'g_processes'):
-            current_app.g_processes = RecordDate()
-        newprocesses = Processes()
-        newprocesses.scan()
-        if len(current_app.g_processes.data) > 0:
-            newprocesses.diff(current_app.g_processes.data[-1])
-        current_app.g_processes.add(newprocesses)
-        
-        #meminfo
-        if not hasattr(current_app,'g_meminfo'):
-            current_app.g_meminfo = RecordDate()
-        newmeminfo = Meminfo()
-        newmeminfo.update()
-        current_app.g_meminfo.add(newmeminfo)
-
-        #uptime
-        if not hasattr(current_app,'g_uptime'):
-            current_app.g_uptime = RecordDate()
-        newuptime = Uptime()
-        newuptime.update()
-        current_app.g_uptime.add(newuptime)
-        
-        ctx.pop() 
