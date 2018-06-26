@@ -3,6 +3,9 @@ from flask_bootstrap import Bootstrap
 from config import config
 #from flask_sqlalchemy import SQLAlchemy
 
+from .flamescope.views.stack import MOD_STACK
+from .flamescope.views.heatmap import MOD_HEATMAP
+
 bootstrap = Bootstrap()
 #db = SQLAlchemy()
 app = Flask(__name__)
@@ -18,4 +21,7 @@ def create_app(config_name):
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
+    app.register_blueprint(MOD_STACK)
+    app.register_blueprint(MOD_HEATMAP)
+    
     return app

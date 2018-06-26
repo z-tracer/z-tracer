@@ -32,7 +32,7 @@ class Zclient:
                 if end in serverResponse:
                     serverResponse = serverResponse.replace(end,str.encode(""))
                     break
-            responseJsonDecoded = json.loads(serverResponse.decode()) # decode the data received
+            responseJsonDecoded = json.loads(serverResponse.decode())
             if responseJsonDecoded:
                 return responseJsonDecoded['result']
             else:
@@ -106,3 +106,41 @@ class Zclient:
             else:
               file.close()
             return outputs
+
+    def get_perfreport(self, cmdline):
+        if 1:
+            params = {}
+            params['cmd'] = cmdline
+            outputs = self.sendRequest('perfreport',params)
+            if outputs != None:
+                if len(outputs) == 0:
+                    return None
+            return outputs
+        else:
+            try:
+              os.system(cmdline) 
+            except IOError:
+              print("Error: cant run cmd %s" % (cmdline))
+              return None
+            else:
+                pass
+
+    def get_perfscript(self, cmdline):
+        if 1:
+            params = {}
+            params['cmd'] = cmdline
+            outputs = self.sendRequest('perfscript',params)
+            if outputs != None:
+                if len(outputs) == 0:
+                    return None
+            return outputs
+        else:
+            try:
+              os.system(cmdline) 
+            except IOError:
+              print("Error: cant run cmd %s" % (cmdline))
+              return None
+            else:
+                pass
+
+

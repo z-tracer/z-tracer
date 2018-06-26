@@ -1,0 +1,16 @@
+{% extends "cpu_base.html" %}
+{% block title %}ZTracer{% endblock %}
+
+{% block main_content %}
+    <div id="root"></div>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/flamescope.js') }}?=3"></script>
+    <style>
+    a{
+        color: #337ab7;
+    }
+    </style>
+{% endblock %}
+
+
+{% block scripts %}
+{% endblock %}

@@ -1,8 +1,8 @@
 from flask import render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g, jsonify
 from . import main
-from .forms import EditProfileForm
-from ..record.record import Record, Loadavg,Process,Processes,Stat
+from .forms import EditProfileForm, PerfForm
+from ..record.record import Record, Loadavg,Process,Processes,Stat,Perf
 #from .. import db
 from ..device import Device
 from datetime import datetime
@@ -20,6 +20,10 @@ def before_request():
     
 @main.route('/', methods=['GET', 'POST'])
 def index():
+    return render_template('flamescope.html')
+
+@main.route('/summary', methods=['GET', 'POST'])
+def summary():
     if not hasattr(current_app,'curr_device'):
         return redirect(url_for('.profile'))
         device = Device(current_app.config['DEFAULT_CLIENT_IP'],current_app.config['DEFAULT_CLIENT_PORT'])
@@ -98,6 +102,15 @@ def softirqs():
 def interrupts():
     return render_template('interrupts.html',cpunum = current_app.curr_device.g_cpunum,interrupts = current_app.curr_device.g_interrupts)
 
+@main.route('/perf', methods=['GET', 'POST'])
+def perf():
+    form = PerfForm()
+    form.cpu.data = None
+    form.pid.data = None
+    form.time.data = current_app.config['DEFAULT_PERF_TIME']
+    form.hz.data = current_app.config['DEFAULT_PERF_HZ']
+    return render_template('perf.html', form=form)
+
 @main.route('/process', methods=['GET', 'POST'])
 def process():
     if not hasattr(current_app.curr_device,'g_threads'):
@@ -155,6 +168,34 @@ def process_pid(pid):
     process_one.getfd()
     process_one.getthreads()
     return render_template('pid.html', data=process_one, threadlist = current_app.curr_device.g_threads.thread_dict)
+
+@main.route('/perf/start', methods=['GET', 'POST'])
+def perf_start():
+    if os.path.exists('app/static/perf/perf.stack'):
+        os.remove('app/static/perf/perf.stack')
+    cpu=request.form.get('cpu')
+    pid=request.form.get('pid')
+    gtime=request.form.get('time')
+    hz=request.form.get('hz')
+    adv=request.form.get('adv')
+    if not hasattr(current_app.curr_device,'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    if len(cpu) > 0:
+        current_app.curr_device.perf.cpu = cpu
+    if len(pid) > 0:
+        current_app.curr_device.perf.pid = pid
+    if len(adv) > 0:
+        current_app.curr_device.perf.adv = adv
+    current_app.curr_device.perf.time = gtime
+    current_app.curr_device.perf.hz = hz
+    current_app.curr_device.perf.record()
+    if os.path.exists('app/static/perf/perf.stack'):
+        print('file find')
+        return jsonify({'result':'ok'})
+    else:
+        print('file not found')
+        return jsonify({'result':'error'})
+
 
 @main.route('/update/all', methods=['GET', 'POST'])
 def update_all():

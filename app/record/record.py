@@ -7,6 +7,7 @@ import sys
 import time
 import graphviz as gv
 from app.zclient.zclient import Zclient
+import shutil
 
 #定义二维数组，存放固定长度的数据
 class Record():
@@ -802,7 +803,7 @@ class Process():
         print(lists)
         for list in lists:
             if list.isdigit():
-                thread = Thread(pid = int(list),leader = self.pid)
+                thread = Thread(self.zclient,pid = int(list),leader = self.pid)
                 ret = thread.getstat()
                 self.threadcnt += 1
                 if ret:
@@ -844,7 +845,7 @@ class Processes():
                 if ret:
                     process.getstatus()
                     self.process_dict[process.pid] = process
-        print("total process %d"%(self.pidcnt))
+        #print("total process %d"%(self.pidcnt))
         self.stat = Stat(self.zclient)
         self.stat.update()
         return self.process_dict
@@ -881,7 +882,7 @@ class Processes():
         if oldstat.pidcnt != 0:
             self.stat.diff(oldstat.stat)
             self.diffcpu = self.stat.difftotal_cputime
-            print(self.diffcpu)
+            #print(self.diffcpu)
             
             nr_thread = 0
             for key in self.process_dict:
@@ -992,4 +993,44 @@ class Processes():
 
         #print(dot.source) 
         dot.render('app/static/pstree')
+
+class Perf():
+    def __init__(self, zclient,**kwargs):
+        self.zclient = zclient
+        self.cpu = None
+        self.time = 120
+        self.hz = 49
+        self.pid = None
+        self.adv = None
+
+    def record(self):
+        r_hz = ' -F ' + str(self.hz)
+        r_time = ' -- sleep ' + str(self.time)
+        if self.cpu != None:
+            r_cpu = ' -C ' + self.cpu
+        else:
+            r_cpu = ' -a'
+
+        if self.pid != None:
+            r_pid = ' -P ' + str(self.pid)
+        else:
+            r_pid = ''
+
+        if self.adv != None:
+            r_adv = self.adv
+        else:
+            r_adv = ''
+        cmdline = 'perf record -g' + r_cpu + r_pid + r_hz + r_time + r_adv
+        print(cmdline)
+        if 1:
+            data = self.zclient.get_perfscript(cmdline)
+            if data != None:
+                fh = open('app/static/perf/perf.stack', 'wb')
+                fh.write(data.encode())
+                fh.close()
+        else:
+            self.zclient.get_perfreport(cmdline)
+            cmdline2 = 'perf script --header > perf.stack'
+            self.zclient.get_perfreport(cmdline2)
+            shutil.move('perf.stack','app/static/perf/perf.stack')
 

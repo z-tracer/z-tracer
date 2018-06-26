@@ -8,7 +8,12 @@ class Config:
     DEFAULT_CLIENT_PORT = 1234
     DEFAULT_TIME_INT = 1
     DEFAULT_SAMPLE_SIZE = 120
-    
+    DEFAULT_PERF_TIME = 120
+    DEFAULT_PERF_HZ = 49
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    STACK_DIR = 'app/static/perf'
+    JSONIFY_PRETTYPRINT_REGULAR = False
+
     @staticmethod
     def init_app(app):
         pass

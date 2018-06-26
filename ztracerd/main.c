@@ -24,6 +24,7 @@
 #define PROCBUFLEN 8192
 #define CMDBUFLEN 8192
 
+char *perfbuf=NULL;
 static int debug=0;
 #define DEBUG_PRINT(fmt, args...) \
 	do { if(debug) \
@@ -111,6 +112,57 @@ cJSON * runcmd(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	return NULL;
 }
 
+cJSON * perfscript(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	
+	ph = cJSON_GetObjectItem(params,"cmd");
+	if(ph != NULL)
+	{
+		char *cmd = ph->valuestring;
+		DEBUG_PRINT("run perf %s\n",cmd);
+		system(cmd);
+
+		stream = popen("perf script --header","r");
+		if(stream == NULL )
+		{
+			DEBUG_PRINT("cann't run cmd perf script\n");
+			return NULL;
+		}
+		
+		if(perfbuf != NULL)
+			free(perfbuf);
+		
+		perfbuf = malloc(buffersize);
+		if(perfbuf != NULL)
+		{
+			memset(perfbuf,0,8192);
+			while(1)
+			{
+				len = fread(perfbuf+buffersize-8192, sizeof(char), 8192, stream);
+				DEBUG_PRINT("read len %d buffersize %d\n",len,buffersize);
+				if(len <= 8192 - strlen(endstring) - 1)
+					break;
+				buffersize +=8192;
+				perfbuf = realloc(perfbuf,buffersize);
+				memset(perfbuf+buffersize-8192,0,8192);
+				if(perfbuf == NULL)
+				{
+					printf("remalloc fail\n");
+					break;
+				}
+			}
+			pclose(stream);
+			strcat(perfbuf, endstring);
+			return cJSON_CreateString(perfbuf);
+		}
+	}
+	return NULL;
+}
+
 int main(int argc,char *argv[]) {
 	if(argc > 1)
 	{
@@ -122,6 +174,7 @@ int main(int argc,char *argv[]) {
 	jrpc_register_procedure(&my_server, exit_server, "exit", NULL );
 	jrpc_register_procedure(&my_server, readfile, "readfile", NULL );
 	jrpc_register_procedure(&my_server, runcmd, "runcmd", NULL );
+	jrpc_register_procedure(&my_server, perfscript, "perfscript", NULL );
 	jrpc_server_run(&my_server);
 	jrpc_server_destroy(&my_server);
 	return 0;
