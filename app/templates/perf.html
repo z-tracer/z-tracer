@@ -5,9 +5,12 @@
     <div class="container">
         <div class="row">
             <hr/>
-            <div class="col-md-4">
+            <div class="col-md-6">
             {{ wtf.quick_form(form) }}
+            </div>
+            <div class="col-md-12">
             <label id="perfstart" class="btn btn-success">开始采样</label>
+            <label id="perfstop" class="btn btn-danger">停止采样</label>
             </div>
             <div class="col-md-12">
                 <hr/>
@@ -19,7 +22,9 @@
             </div>
         </div>
     </div>
-    <div id="perfok" align="center"></div>
+    <div id="perfok" align="center">
+    <a id="ret"></a>
+    </div>
 {% endblock %}
 
 
@@ -29,15 +34,17 @@
     var percent = 0;
     var time = 0;
     var cnt = 0;
-    var timer = 1; 
+    var timer = 0; 
     var done = 0;
+    var begintime = 0;
+    var linkTmp = document.getElementById("ret");
 
     $("#perfstart").click(function(){
         $('.progress-bar').attr('aria-valuenow', 0).css('width', 0 + '%').text(0 + '%');
         percent = 0;
         cnt = 0; 
-        timer = setInterval(clickdone,100);
         time = $("#time").val();
+        begintime = (new Date()).getTime();
         $.post("/perf/start",
         {
             cpu : $("#cpu").val(),
@@ -49,20 +56,11 @@
         function(data,status){
             if(status == "success")
             {
-                $('.progress-bar').attr('aria-valuenow', 100).css('width', 100 + '%').text(100 + '%');
-                var div = document.getElementById("perfok");
-                var linkTmp = document.createElement("a");
-                if(data.result == 'ok')
+                if(data.result == "ok")
                 {
-                    linkTmp.href = "/#/heatmap/perf.stack";
-                    linkTmp.innerText = "查看结果"; 
-                    done = 1;
+                    timer = setInterval(clickdone,1000);
+                    linkTmp.innerText = "正在检测..."; 
                 }
-                else
-                {
-                    linkTmp.innerText = "运行perf失败，确保安装了perf工具"; 
-                }
-                div.appendChild(linkTmp);
             }
         });
     });
@@ -70,16 +68,53 @@
     function clickdone(){
         cnt += 1;
         percent = Math.round(cnt * 10 / time);
-        if(percent >= 100 || done == 1)
+        
+        $.post("/perf/checkdone",
         {
-            $('.progress-bar').attr('aria-valuenow', 100).css('width', 100 + '%').text(100 + '%');
-            clearInterval(timer);
-            window.location.href="/#/heatmap/perf.stack";
-        }
-        else
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                linkTmp.innerText = ((new Date()).getTime() - begintime)/1000; 
+                if(data.result == 'ok')
+                {
+                    $('.progress-bar').attr('aria-valuenow', 100).css('width', 100 + '%').text(100 + '%');
+                    linkTmp.href = "/#/heatmap/perf.stack";
+                    linkTmp.innerText = "查看结果"; 
+                    done = 1;
+                    if(timer != 0)
+                        clearInterval(timer);
+                }
+                //window.location.href="/#/heatmap/perf.stack";
+            }
+        });
+
+        if(percent < 100)
         {
             $('.progress-bar').attr('aria-valuenow', percent).css('width', percent + '%').text(percent + '%');
         }
     }
+
+    $("#perfstop").click(function(){
+        $.post("/perf/stop",
+        {
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == 'ok')
+                {
+                    linkTmp.innerText = "等待传输完成"; 
+                    done = 1;
+                    if(timer == 0)
+                        clickdone();
+                }
+                else
+                {
+                    linkTmp.innerText = "运行perf失败，确保安装了perf工具"; 
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

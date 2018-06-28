@@ -17,9 +17,9 @@ class EditProfileForm(FlaskForm):
     submit = SubmitField('连接设备')
 
 class PerfForm(FlaskForm):
-    time = StringField('采样时间(单位:秒)', validators=[DataRequired()])
-    hz = StringField('采样频率',validators=[DataRequired()])
+    hz = StringField('采样频率*',validators=[DataRequired()])
+    time = StringField('采样时间(单位:秒)')
     cpu = StringField('监控cpu(需要监控多个cpu的话用逗号隔开)')
-    pid = StringField('监控进程')
+    pid = StringField('监控进程pid')
     adv = StringField('高级参数')
     #submit = SubmitField('开始采样')

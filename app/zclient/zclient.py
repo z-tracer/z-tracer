@@ -8,7 +8,7 @@ class Zclient:
     def __init__(self, clientip, port):
         self.clientip = clientip
         self.port = port
-        self.bufferSize = 2048
+        self.bufferSize = 8192
         self.lock = threading.Lock()
         self.connect = 0
 
@@ -129,7 +129,9 @@ class Zclient:
         if 1:
             params = {}
             params['cmd'] = cmdline
+            self.bufferSize = 1024*1024   #在这里临时将数据缓冲扩大，不然传输会很慢
             outputs = self.sendRequest('perfscript',params)
+            self.bufferSize = 8192
             if outputs != None:
                 if len(outputs) == 0:
                     return None
@@ -143,4 +145,46 @@ class Zclient:
             else:
                 pass
 
+    def acmdstart(self, cmdline):
+        params = {}
+        params['cmd'] = cmdline
+        outputs = self.sendRequest('acmdstart',params)
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs
 
+    def acmdstop(self):
+        params = {}
+        outputs = self.sendRequest('acmdstop',params)
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs
+
+    def acmdcheckdone(self):
+        params = {}
+        outputs = self.sendRequest('acmdcheckdone',params)
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs
+
+    def acmdwait(self):
+        params = {}
+        outputs = self.sendRequest('acmdwait',params)
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs
+
+    def acmdresult(self, cmdline):
+        params = {}
+        params['cmd'] = cmdline
+        self.bufferSize = 1024*1024
+        outputs = self.sendRequest('acmdresult',params)
+        self.bufferSize = 8192
+        if outputs != None:
+            if len(outputs) == 0:
+                return None
+        return outputs

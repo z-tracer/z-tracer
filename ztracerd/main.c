@@ -35,6 +35,10 @@ unsigned char procbuf[PROCBUFLEN];
 unsigned char cmdbuf[CMDBUFLEN];
 struct jrpc_server my_server;
 unsigned char *endstring = "sometimewhenitrains"; 
+unsigned char *okendstring = "oksometimewhenitrains"; 
+unsigned char *errendstring = "errsometimewhenitrains"; 
+unsigned char *doneendstring = "donesometimewhenitrains"; 
+unsigned char *waitendstring = "waitsometimewhenitrains"; 
 
 void printJson(cJSON * root)
 {
@@ -163,6 +167,170 @@ cJSON * perfscript(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	return NULL;
 }
 
+int perfpid = 0;
+int perfrunning = 0;
+cJSON * acmdstart(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	char *p;
+	char *argv[128];
+	int i = 0;
+	
+	ph = cJSON_GetObjectItem(params,"cmd");
+	if(ph != NULL)
+	{
+		if(perfpid == 0)
+		{
+			char *cmd = ph->valuestring;
+			perfpid = fork();
+			if(perfpid == 0)
+			{
+				p = strtok (cmd," "); 
+				while(p!=NULL) { 
+					DEBUG_PRINT (":%s\n",p); 
+					argv[i] = p;
+					i++;
+					p = strtok(NULL," "); 
+				} 
+				argv[i] = '\0';
+				DEBUG_PRINT("child run cmd %s\n",cmd);
+				execvp(argv[0], argv);
+				printf("error never got here\n");
+				exit(0);
+			}
+			else
+			{
+				DEBUG_PRINT("childpid %d\n",perfpid);
+				perfrunning = 1;
+			}
+			return cJSON_CreateString(okendstring);
+		}
+	}
+	return cJSON_CreateString(errendstring);;
+}
+
+cJSON * acmdstop(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	int status;
+	int ret;
+
+	if(perfpid != 0)
+	{
+		kill(perfpid,SIGINT);
+	}
+	return cJSON_CreateString(okendstring);
+}
+
+
+cJSON * acmdcheckdone(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	int status;
+	int ret;
+
+	if(perfpid != 0)
+	{
+		ret = waitpid(perfpid,&status,WNOHANG);
+		if(ret == 0)
+			return cJSON_CreateString(waitendstring);
+		else
+		{
+			perfpid = 0;
+			perfrunning = 0;
+			return cJSON_CreateString(doneendstring);
+		}
+	}
+	return cJSON_CreateString(doneendstring);
+}
+
+cJSON * acmdwait(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	int status;
+	int ret;
+
+	if(perfpid != 0)
+	{
+		while(1)
+		{
+			ret = waitpid(perfpid,&status,WNOHANG);
+			sleep(1);
+			if(ret == 0)
+				printf("wait\n");
+			else
+			{
+				perfpid = 0;
+				perfrunning = 0;
+				break;
+			}
+		}
+	}
+	return cJSON_CreateString(doneendstring);
+}
+
+cJSON * acmdresult(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	
+	ph = cJSON_GetObjectItem(params,"cmd");
+	if(ph != NULL)
+	{
+		char *cmd = ph->valuestring;
+		DEBUG_PRINT("run perf result %s\n",cmd);
+
+		stream = popen(cmd,"r");
+		if(stream == NULL )
+		{
+			DEBUG_PRINT("cann't run cmd perf script\n");
+			return NULL;
+		}
+		
+		if(perfbuf != NULL)
+			free(perfbuf);
+		
+		perfbuf = malloc(buffersize);
+		if(perfbuf != NULL)
+		{
+			memset(perfbuf,0,8192);
+			while(1)
+			{
+				len = fread(perfbuf+buffersize-8192, sizeof(char), 8192, stream);
+				DEBUG_PRINT("read len %d buffersize %d\n",len,buffersize);
+				if(len <= 8192 - strlen(endstring) - 1)
+					break;
+				buffersize +=8192;
+				perfbuf = realloc(perfbuf,buffersize);
+				memset(perfbuf+buffersize-8192,0,8192);
+				if(perfbuf == NULL)
+				{
+					printf("remalloc fail\n");
+					break;
+				}
+			}
+			pclose(stream);
+			strcat(perfbuf, endstring);
+			return cJSON_CreateString(perfbuf);
+		}
+	}
+	return NULL;
+}
+
 int main(int argc,char *argv[]) {
 	if(argc > 1)
 	{
@@ -174,7 +342,15 @@ int main(int argc,char *argv[]) {
 	jrpc_register_procedure(&my_server, exit_server, "exit", NULL );
 	jrpc_register_procedure(&my_server, readfile, "readfile", NULL );
 	jrpc_register_procedure(&my_server, runcmd, "runcmd", NULL );
+
+	jrpc_register_procedure(&my_server, acmdstart, "acmdstart", NULL );
+	jrpc_register_procedure(&my_server, acmdstop, "acmdstop", NULL );
+	jrpc_register_procedure(&my_server, acmdcheckdone, "acmdcheckdone", NULL );
+	jrpc_register_procedure(&my_server, acmdwait, "acmdwait", NULL );
+	jrpc_register_procedure(&my_server, acmdresult, "acmdresult", NULL );
+
 	jrpc_register_procedure(&my_server, perfscript, "perfscript", NULL );
+
 	jrpc_server_run(&my_server);
 	jrpc_server_destroy(&my_server);
 	return 0;
