@@ -2,7 +2,9 @@ from flask import render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g, jsonify
 from . import main
 from .forms import EditProfileForm, PerfForm
-from ..record.record import Record, Loadavg,Process,Processes,Stat,Perf
+from ..record.record import Record, Loadavg,Process,Processes,Stat
+from ..record.perf import Perf
+from ..record.ftrace import Ftrace
 #from .. import db
 from ..device import Device
 from datetime import datetime
@@ -109,6 +111,22 @@ def perf():
     form.pid.data = None
     form.time.data = None
     form.hz.data = current_app.config['DEFAULT_PERF_HZ']
+    return render_template('perf.html', form=form)
+
+@main.route('/function', methods=['GET', 'POST'])
+def function():
+    form = PerfForm()
+    form.cpu.data = None
+    form.pid.data = None
+    form.time.data = None
+    if not hasattr(current_app.curr_device,'ftrace'):
+        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
+    current_app.curr_device.ftrace.reset()
+    current_app.curr_device.ftrace.config()
+    current_app.curr_device.ftrace.start()
+    time.sleep(5)
+    current_app.curr_device.ftrace.stop()
+    current_app.curr_device.ftrace.read()
     return render_template('perf.html', form=form)
 
 @main.route('/process', methods=['GET', 'POST'])
