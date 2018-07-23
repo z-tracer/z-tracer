@@ -129,7 +129,7 @@ class Zclient:
         if 1:
             params = {}
             params['cmd'] = cmdline
-            self.bufferSize = 1024*1024   #在这里临时将数据缓冲扩大，不然传输会很慢
+            self.bufferSize = 1024*1024   #鍦ㄨ繖閲屼复鏃跺皢鏁版嵁缂撳啿鎵╁ぇ锛屼笉鐒朵紶杈撲細寰堟參
             outputs = self.sendRequest('perfscript',params)
             self.bufferSize = 8192
             if outputs != None:
@@ -188,3 +188,23 @@ class Zclient:
             if len(outputs) == 0:
                 return None
         return outputs
+
+    def get_seqread(self, filename):
+        if 1:
+            params = {}
+            params['path'] = filename
+            data = self.sendRequest('seqread',params)
+            if data != None:
+                if len(data) == 0:
+                    return None
+            return data
+        else:
+            try:
+              fh = open(filename, 'r')
+              data = fh.read()
+            except IOError:
+              print("Error: cant open file %s" % (filename))
+              return None
+            else:
+              fh.close()
+            return data

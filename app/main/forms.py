@@ -23,3 +23,8 @@ class PerfForm(FlaskForm):
     pid = StringField('监控进程pid')
     adv = StringField('高级参数')
     #submit = SubmitField('开始采样')
+
+class FuncForm(FlaskForm):
+    func = StringField('函数*',validators=[DataRequired()])
+    depth = StringField('深度')
+    #submit = SubmitField('开始采样')

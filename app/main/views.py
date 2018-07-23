@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g, jsonify
 from . import main
-from .forms import EditProfileForm, PerfForm
+from .forms import EditProfileForm, PerfForm, FuncForm
 from ..record.record import Record, Loadavg,Process,Processes,Stat
 from ..record.perf import Perf
 from ..record.ftrace import Ftrace
@@ -115,19 +115,12 @@ def perf():
 
 @main.route('/function', methods=['GET', 'POST'])
 def function():
-    form = PerfForm()
-    form.cpu.data = None
-    form.pid.data = None
-    form.time.data = None
     if not hasattr(current_app.curr_device,'ftrace'):
         current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
-    current_app.curr_device.ftrace.reset()
-    current_app.curr_device.ftrace.config()
-    current_app.curr_device.ftrace.start()
-    time.sleep(5)
-    current_app.curr_device.ftrace.stop()
-    current_app.curr_device.ftrace.read()
-    return render_template('perf.html', form=form)
+    current_app.curr_device.ftrace.get_available_functions()
+    form = FuncForm()
+    form.depth.data = 1
+    return render_template('function.html', form=form)
 
 @main.route('/process', methods=['GET', 'POST'])
 def process():
@@ -186,6 +179,54 @@ def process_pid(pid):
     process_one.getfd()
     process_one.getthreads()
     return render_template('pid.html', data=process_one, threadlist = current_app.curr_device.g_threads.thread_dict)
+
+@main.route('/ftrace/start', methods=['GET', 'POST'])
+def ftrace_start():
+    ret = 0
+    func=request.form.get('func')
+    depth=request.form.get('depth')
+    print(func,depth)
+    if func == '':
+        return jsonify({'result':'需要设置函数'})
+    if not hasattr(current_app.curr_device,'ftrace'):
+        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
+    current_app.curr_device.ftrace.reset()
+    ret = current_app.curr_device.ftrace.config_func_runtime(func,depth)
+    if ret == 1:
+        ret = current_app.curr_device.ftrace.start()
+        if ret == 'ok':
+            print('start ok')
+            return jsonify({'result':'ok'})
+        else:
+            print('start fail')
+            return jsonify({'result':'运行ftrace失败，确保内核开启了ftrace'})
+    else:
+        return jsonify({'result':'function not support'})
+
+@main.route('/ftrace/stop', methods=['GET', 'POST'])
+def ftrace_stop():
+    if not hasattr(current_app.curr_device,'ftrace'):
+        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
+    ret = current_app.curr_device.ftrace.stop()
+    if ret == 'ok':
+        current_app.curr_device.ftrace.read()
+        ret = current_app.curr_device.ftrace.tostack()
+        if ret > 0:
+            pidhist = current_app.curr_device.ftrace.get_pid_latency_dict()
+            heatmap = current_app.curr_device.ftrace.list_to_heatmap(20,50)
+            print(pidhist,heatmap)
+            return jsonify({'result':'ok','pidhist':pidhist,'heatmap':heatmap})
+        else:
+            return jsonify({'result':'no tarce data'})
+    else:
+        return jsonify({'result':'error'})
+
+@main.route('/ftrace/funclist', methods=['GET', 'POST'])
+def ftrace_funclist():
+    if not hasattr(current_app.curr_device,'ftrace'):
+        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
+    current_app.curr_device.ftrace.get_available_functions()
+    return jsonify({'result':'ok','funclist':current_app.curr_device.ftrace.available_functions})
 
 @main.route('/perf/start', methods=['GET', 'POST'])
 def perf_start():

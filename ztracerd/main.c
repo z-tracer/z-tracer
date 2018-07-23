@@ -25,6 +25,7 @@
 #define CMDBUFLEN 8192
 
 char *perfbuf=NULL;
+char *p_cmdbuf=NULL;
 static int debug=0;
 #define DEBUG_PRINT(fmt, args...) \
 	do { if(debug) \
@@ -67,8 +68,8 @@ cJSON * exit_server(jrpc_context * ctx, cJSON * params, cJSON *id) {
 
 cJSON * readfile(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	int fd;
-
 	int len;
+	int buffersize = PROCBUFLEN + 8192;
 	cJSON * ph=NULL;
 
 	//printf("%s\n",cJSON_Print(params));
@@ -80,13 +81,51 @@ cJSON * readfile(jrpc_context * ctx, cJSON * params, cJSON *id) {
 		if(fd < 0)
 		{
 			DEBUG_PRINT("cann't open %s\n",path);
+			return cJSON_CreateString(endstring);
 		}
-		DEBUG_PRINT("read %s\n",path);
 		memset(procbuf,0,PROCBUFLEN);
-		len = read(fd,procbuf,PROCBUFLEN - strlen(endstring) - 1);
-		close(fd);
-		strcat(procbuf, endstring);
-		return cJSON_CreateString(procbuf);
+		len = read(fd,procbuf,PROCBUFLEN);
+		DEBUG_PRINT("read %s len = %d\n",path,len);
+		if(len >= PROCBUFLEN - strlen(endstring) - 1)
+		{
+			printf("proc file is bigger than %d,use malloc inside\n",PROCBUFLEN);
+			if(p_cmdbuf != NULL)
+				free(p_cmdbuf);
+			
+			p_cmdbuf = malloc(buffersize);
+			if(p_cmdbuf != NULL)
+			{
+				memset(p_cmdbuf,0,buffersize);
+				memcpy(p_cmdbuf,procbuf,len);
+				if(len == PROCBUFLEN)
+				{
+					while(1)
+					{
+						len = read(fd, p_cmdbuf+buffersize-PROCBUFLEN, 8192);
+						printf("read len %d buffersize %d\n",len,buffersize);
+						if(len <= 8192 - strlen(endstring) - 1)
+							break;
+						buffersize +=8192;
+						p_cmdbuf = realloc(p_cmdbuf,buffersize);
+						memset(p_cmdbuf+buffersize-8192,0,8192);
+						if(p_cmdbuf == NULL)
+						{
+							printf("remalloc fail\n");
+							break;
+						}
+					}
+				}
+				close(fd);
+				strcat(p_cmdbuf, endstring);
+				return cJSON_CreateString(p_cmdbuf);
+			}
+		}
+		else
+		{
+			close(fd);
+			strcat(procbuf, endstring);
+			return cJSON_CreateString(procbuf);
+		}
 	}
 	return NULL;
 }
@@ -105,6 +144,7 @@ cJSON * runcmd(jrpc_context * ctx, cJSON * params, cJSON *id) {
 		if(stream == NULL )
 		{
 			DEBUG_PRINT("cann't run cmd %s\n",path);
+			cJSON_CreateString(endstring);
 		}
 		DEBUG_PRINT("runcmd %s\n",path);
 		memset(cmdbuf,0,CMDBUFLEN);
@@ -209,7 +249,7 @@ cJSON * acmdstart(jrpc_context * ctx, cJSON * params, cJSON *id) {
 			return cJSON_CreateString(okendstring);
 		}
 	}
-	return cJSON_CreateString(errendstring);;
+	return cJSON_CreateString(errendstring);
 }
 
 cJSON * acmdstop(jrpc_context * ctx, cJSON * params, cJSON *id) {
@@ -292,13 +332,13 @@ cJSON * acmdresult(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	if(ph != NULL)
 	{
 		char *cmd = ph->valuestring;
-		DEBUG_PRINT("run perf result %s\n",cmd);
+		DEBUG_PRINT("run result cmd %s\n",cmd);
 
 		stream = popen(cmd,"r");
 		if(stream == NULL )
 		{
-			DEBUG_PRINT("cann't run cmd perf script\n");
-			return NULL;
+			DEBUG_PRINT("cann't run result cmd\n");
+			return cJSON_CreateString(endstring);
 		}
 		
 		if(perfbuf != NULL)
@@ -331,6 +371,93 @@ cJSON * acmdresult(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	return NULL;
 }
 
+int get_ftrace_buffer_size(void)
+{
+	int fd;
+	int len=0;
+	char buf[128];
+	int bufferkb=0;
+	fd = open("/sys/kernel/debug/tracing/buffer_total_size_kb",O_RDONLY);
+	if(fd < 0 )
+	{
+		DEBUG_PRINT("cann't run seqread\n");
+		return 0;
+	}
+	
+	memset(buf,0,128);
+	len = read(fd, buf, 128);
+	if(len > 0)
+		bufferkb = atoi(buf);
+	printf("ftrace buffer size=%dkB\n",bufferkb);
+	return bufferkb;
+}
+
+cJSON * seqread(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	int fd;
+	int len = 0;
+	int totallen = 0;
+	int pos = 0;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int mallocstep = (get_ftrace_buffer_size()+1)*1024;
+	int buffersize = mallocstep;
+	
+	ph = cJSON_GetObjectItem(params,"path");
+	if(ph != NULL)
+	{
+		char *path = ph->valuestring;
+		DEBUG_PRINT("seqread %s\n",path);
+
+		fd = open(path,O_RDONLY);
+		if(fd < 0 )
+		{
+			DEBUG_PRINT("cann't run seqread\n");
+			return cJSON_CreateString(endstring);
+		}
+		
+		if(perfbuf != NULL)
+			free(perfbuf);
+		
+		perfbuf = malloc(buffersize);
+		if(perfbuf != NULL)
+		{
+			memset(perfbuf,0,buffersize);
+			while(1)
+			{
+				len = read(fd, perfbuf+buffersize-mallocstep + pos, mallocstep - pos);
+				totallen += len;
+				printf("read len %d buffersize %d,total len %d\n",len,buffersize,totallen);
+				if(len == 0)
+					break;
+				pos += len;
+				if(pos == mallocstep)
+				{
+					buffersize +=mallocstep;
+					pos = 0;
+					perfbuf = realloc(perfbuf,buffersize);
+					memset(perfbuf+buffersize-mallocstep,0,mallocstep);
+					if(perfbuf == NULL)
+					{
+						printf("remalloc fail\n");
+						break;
+					}					
+				}
+			}
+			if(pos > mallocstep - strlen(endstring) - 1)
+			{
+				printf("malloc more space for endstring\n");
+				buffersize += mallocstep;
+				perfbuf = realloc(perfbuf,buffersize);
+				memset(perfbuf+buffersize-mallocstep,0,mallocstep);
+			}
+			close(fd);
+			strcat(perfbuf, endstring);
+			return cJSON_CreateString(perfbuf);
+		}
+	}
+	return NULL;
+}
+
 int main(int argc,char *argv[]) {
 	if(argc > 1)
 	{
@@ -348,6 +475,7 @@ int main(int argc,char *argv[]) {
 	jrpc_register_procedure(&my_server, acmdcheckdone, "acmdcheckdone", NULL );
 	jrpc_register_procedure(&my_server, acmdwait, "acmdwait", NULL );
 	jrpc_register_procedure(&my_server, acmdresult, "acmdresult", NULL );
+	jrpc_register_procedure(&my_server, seqread, "seqread", NULL );
 
 	jrpc_register_procedure(&my_server, perfscript, "perfscript", NULL );
 
