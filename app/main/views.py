@@ -1,24 +1,15 @@
 from flask import render_template, redirect, url_for, abort, flash, request,\
     current_app, make_response, g, jsonify
 from . import main
-from .forms import EditProfileForm, PerfForm, FuncForm
-from ..record.record import Record, Loadavg,Process,Processes,Stat
-from ..record.perf import Perf
-from ..record.ftrace import Ftrace
-#from .. import db
+from .forms import EditProfileForm
+from ..record.cpu import Stat
 from ..device import Device
-from datetime import datetime
-import os,random
-import pygal
-import time
-
-#g_loadavg = Loadavg()
-#g_stat = Stat()
-#g_processes = Processes()
 
 @main.before_request
 def before_request():
-    pass
+    if '/profile' not in request.url:
+        if not hasattr(current_app,'curr_device'):
+            return redirect(url_for('.profile'))
     
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -104,211 +95,6 @@ def softirqs():
 def interrupts():
     return render_template('interrupts.html',cpunum = current_app.curr_device.g_cpunum,interrupts = current_app.curr_device.g_interrupts)
 
-@main.route('/perf', methods=['GET', 'POST'])
-def perf():
-    form = PerfForm()
-    form.cpu.data = None
-    form.pid.data = None
-    form.time.data = None
-    form.hz.data = current_app.config['DEFAULT_PERF_HZ']
-    return render_template('perf.html', form=form)
-
-@main.route('/function', methods=['GET', 'POST'])
-def function():
-    if not hasattr(current_app.curr_device,'ftrace'):
-        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
-    current_app.curr_device.ftrace.get_available_functions()
-    form = FuncForm()
-    form.depth.data = 1
-    return render_template('function.html', form=form)
-
-@main.route('/process', methods=['GET', 'POST'])
-def process():
-    if not hasattr(current_app.curr_device,'g_threads'):
-        current_app.curr_device.g_threads = Processes(current_app.curr_device.zclient)
-    pslist = {}
-    current_app.curr_device.g_threads.scanthread()
-    pslist = current_app.curr_device.g_threads.scan()
-    current_app.curr_device.g_threads.ordered = sorted(pslist.keys())
-    #current_app.curr_device.g_threads.gengv()
-    #current_app.curr_device.g_threads.gengraphviz()
-    return render_template('process.html', data=pslist, ordered = current_app.curr_device.g_threads.ordered, date=time.time())
-
-@main.route('/process_diffcpu', methods=['GET', 'POST'])
-def process_diffcpu():
-    ps = []
-    ps_new = Processes(current_app.curr_device.zclient)
-    ps_new.scan()
-    for key in g_processes.process_dict:
-        if key in ps_new.process_dict:
-            ps.append([g_processes.process_dict[key].stat[1],g_processes.process_dict[key].stat[40],\
-            ps_new.process_dict[key].cputime - g_processes.process_dict[key].cputime])
-    g_processes.scan()
-    return render_template('process_diffcpu.html', data=ps)
-
-@main.route('/process_diffmem', methods=['GET', 'POST'])
-def process_diffmem():
-    ps = []
-    ps_new = Processes(current_app.curr_device.zclient)
-    ps_new.scan()
-    for key in g_processes.process_dict:
-        if key in ps_new.process_dict and ps_new.process_dict[key].VmPeak:
-            diff = ps_new.process_dict[key].VmRSS - g_processes.process_dict[key].VmRSS
-            if diff > 0:
-                ps.append([g_processes.process_dict[key].stat[1]+'('+str(g_processes.process_dict[key].stat[0])+')',1,diff])
-            elif diff < 0:
-                ps.append([g_processes.process_dict[key].stat[1]+'('+str(g_processes.process_dict[key].stat[0])+')',0,abs(diff)])
-    g_processes.scan()
-    return render_template('process_diffmem.html', data=ps)
-
-@main.route('/process_monitor', methods=['GET', 'POST'])
-def process_monitor():
-    return render_template('process_monitor.html', cpunum = current_app.curr_device.g_cpunum, processes = current_app.curr_device.g_processes)
-
-@main.route('/process/<int:pid>', methods=['GET', 'POST'])
-def process_pid(pid):
-    isthread = 0
-    process_one = Process(current_app.curr_device.zclient, pid = pid)
-    ret = process_one.getstat()
-    process_one.getcomm()
-    process_one.getcmdline()
-    process_one.getstatus()
-    process_one.getstatm()
-    process_one.getmaps()
-    process_one.getenviron()
-    process_one.getfd()
-    process_one.getthreads()
-    return render_template('pid.html', data=process_one, threadlist = current_app.curr_device.g_threads.thread_dict)
-
-@main.route('/ftrace/start', methods=['GET', 'POST'])
-def ftrace_start():
-    ret = 0
-    func=request.form.get('func')
-    depth=request.form.get('depth')
-    print(func,depth)
-    if func == '':
-        return jsonify({'result':'需要设置函数'})
-    if not hasattr(current_app.curr_device,'ftrace'):
-        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
-    current_app.curr_device.ftrace.reset()
-    ret = current_app.curr_device.ftrace.config_func_runtime(func,depth)
-    if ret == 1:
-        ret = current_app.curr_device.ftrace.start()
-        if ret == 'ok':
-            print('start ok')
-            return jsonify({'result':'ok'})
-        else:
-            print('start fail')
-            return jsonify({'result':'运行ftrace失败，确保内核开启了ftrace'})
-    else:
-        return jsonify({'result':'function not support'})
-
-@main.route('/ftrace/stop', methods=['GET', 'POST'])
-def ftrace_stop():
-    if not hasattr(current_app.curr_device,'ftrace'):
-        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
-    ret = current_app.curr_device.ftrace.stop()
-    if ret == 'ok':
-        current_app.curr_device.ftrace.read()
-        ret = current_app.curr_device.ftrace.tostack()
-        if ret > 0:
-            pidhist = current_app.curr_device.ftrace.get_pid_latency_dict()
-            heatmap = current_app.curr_device.ftrace.list_to_heatmap(20,50)
-            print(pidhist,heatmap)
-            return jsonify({'result':'ok','pidhist':pidhist,'heatmap':heatmap})
-        else:
-            return jsonify({'result':'no tarce data'})
-    else:
-        return jsonify({'result':'error'})
-
-@main.route('/ftrace/funclist', methods=['GET', 'POST'])
-def ftrace_funclist():
-    if not hasattr(current_app.curr_device,'ftrace'):
-        current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
-    current_app.curr_device.ftrace.get_available_functions()
-    return jsonify({'result':'ok','funclist':current_app.curr_device.ftrace.available_functions})
-
-@main.route('/perf/start', methods=['GET', 'POST'])
-def perf_start():
-    if os.path.exists('app/static/perf/perf.stack'):
-        os.remove('app/static/perf/perf.stack')
-    cpu=request.form.get('cpu')
-    pid=request.form.get('pid')
-    gtime=request.form.get('time')
-    hz=request.form.get('hz')
-    adv=request.form.get('adv')
-    if not hasattr(current_app.curr_device,'perf'):
-        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    if len(cpu) > 0:
-        current_app.curr_device.perf.cpu = cpu
-    if len(pid) > 0:
-        current_app.curr_device.perf.pid = pid
-    if len(adv) > 0:
-        current_app.curr_device.perf.adv = adv
-    current_app.curr_device.perf.time = gtime
-    current_app.curr_device.perf.hz = hz
-    ret = current_app.curr_device.perf.start()
-    if ret == 'ok':
-        print('start ok')
-        return jsonify({'result':'ok'})
-    else:
-        print('start fail')
-        return jsonify({'result':'error'})
-
-@main.route('/perf/stop', methods=['GET', 'POST'])
-def perf_stop():
-    if not hasattr(current_app.curr_device,'perf'):
-        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    ret = current_app.curr_device.perf.stop()
-    if ret == 'ok':
-        print('stop')
-        return jsonify({'result':'ok'})
-    else:
-        return jsonify({'result':'error'})
-
-@main.route('/perf/checkdone', methods=['GET', 'POST'])
-def perf_checkdone():
-    if not hasattr(current_app.curr_device,'perf'):
-        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    ret = current_app.curr_device.perf.checkdone()
-    if ret == "done":
-        print('perf done write to app/static/perf/perf.stack')
-        data = current_app.curr_device.perf.script()
-        if data != None:
-            fh = open('app/static/perf/perf.stack', 'wb')
-            fh.write(data.encode())
-            fh.close()
-        return jsonify({'result':'ok'})
-    else:
-        return jsonify({'result':'error'})
-
-@main.route('/perf/perfscript', methods=['GET', 'POST'])
-def perf_perfscript():
-    if os.path.exists('app/static/perf/perf.stack'):
-        os.remove('app/static/perf/perf.stack')
-    cpu=request.form.get('cpu')
-    pid=request.form.get('pid')
-    gtime=request.form.get('time')
-    hz=request.form.get('hz')
-    adv=request.form.get('adv')
-    if not hasattr(current_app.curr_device,'perf'):
-        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    if len(cpu) > 0:
-        current_app.curr_device.perf.cpu = cpu
-    if len(pid) > 0:
-        current_app.curr_device.perf.pid = pid
-    if len(adv) > 0:
-        current_app.curr_device.perf.adv = adv
-    current_app.curr_device.perf.time = gtime
-    current_app.curr_device.perf.hz = hz
-    current_app.curr_device.perf.record()
-    if os.path.exists('app/static/perf/perf.stack'):
-        print('file find')
-        return jsonify({'result':'ok'})
-    else:
-        print('file not found')
-        return jsonify({'result':'error'})
-
 @main.route('/update/all', methods=['GET', 'POST'])
 def update_all():
     data=request.form.get('data')
@@ -340,30 +126,6 @@ def update_all():
             g_stat.getstat()
             return jsonify({'result':'ok','loadavg':ret,'stat':diff})
         
-        if data =='pidvmmem':
-            threadutime = {}
-            threadstime = {}
-            ps = Process(current_app.curr_device.zclient, pid = int(id) )
-            ps.getstat()
-            ret = ps.getstatus()
-            if ps.nr_threads > 1:
-                ps.getthreads()
-                for key in ps.threads:
-                    threadutime[ps.threads[key].pid] = ps.threads[key].utime
-                    threadstime[ps.threads[key].pid] = ps.threads[key].stime
-            print(threadutime)
-            print(threadstime)
-            return jsonify({'result':'ok','src':ret,'threadu':threadutime,'threads':threadstime})
-        
-        if data =='pidtreemap':
-            ps = []
-            for key in g_processes.process_dict:
-                print(key)
-                ps.append([g_processes.process_dict[key].stat[0],g_processes.process_dict[key].stat[40],g_processes.process_dict[key].cputime])
-            print(ps)
-            #return jsonify({'result':'ok','src':ps})
-            return render_template('process_diff.html', data=g_processes.process_dict)
-
         if data == 'index':
             ret = []
             diff=[]
@@ -404,20 +166,5 @@ def update_all():
                 ret = current_app.curr_device.g_interrupts.getlast('interrupts')
                 print(ret)
             return jsonify({'result':'ok','interrupts':ret})
-
-        if data == 'processes':
-            ret = []
-            if hasattr(current_app.curr_device,'g_processes'):
-                ret = {'result':'ok','time':current_app.curr_device.g_processes.data[-1].time, \
-                    'process':current_app.curr_device.g_processes.data[-1].diffprocess, \
-                    'mem':current_app.curr_device.g_processes.data[-1].diffmem, \
-                    'major':current_app.curr_device.g_processes.data[-1].diffmajor, \
-                    'minor':current_app.curr_device.g_processes.data[-1].diffminor, \
-                    'ctxt':current_app.curr_device.g_processes.data[-1].diffctxt, \
-                    'nctxt':current_app.curr_device.g_processes.data[-1].diffnctxt}
-                print(ret)
-                return jsonify(ret)
-            else:
-                return jsonify({'result':'ok'})
     else:
         return jsonify({'result':'error'})

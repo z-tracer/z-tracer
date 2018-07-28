@@ -107,14 +107,14 @@ class Stack():
                 while foldbegin < length:
                     if funcstack[foldbegin].depth == depth:
                         for matchbegin in range(foldbegin-1,0,-1):
-                            if funcstack[matchbegin].name == funcstack[foldbegin].name: #º”…œ≤ª÷ß≥÷µ›πÈ and funcstack[matchbegin].depth == funcstack[foldbegin].depth:
+                            if funcstack[matchbegin].name == funcstack[foldbegin].name: #Âä†‰∏ä‰∏çÊîØÊåÅÈÄíÂΩí and funcstack[matchbegin].depth == funcstack[foldbegin].depth:
                                 #print('find matchbegin',matchbegin,foldbegin)
                                 match = 1
                                 for index in range(0,foldbegin - matchbegin):
                                     if index >= length - foldbegin:
                                         match = 0
                                         break
-                                    if funcstack[matchbegin + index].name != funcstack[foldbegin + index].name: #º”…œ≤ª÷ß≥÷µ›πÈ or funcstack[matchbegin + index].depth != funcstack[foldbegin + index].depth:
+                                    if funcstack[matchbegin + index].name != funcstack[foldbegin + index].name: #Âä†‰∏ä‰∏çÊîØÊåÅÈÄíÂΩí or funcstack[matchbegin + index].depth != funcstack[foldbegin + index].depth:
                                         match = 0
                                         break
                                 if match == 1:
@@ -146,12 +146,12 @@ class Stack():
                 color = '#ff0033'
             else:
                 color = '#96cdcd3f'
-            if self.funkstack[index].count > 5:
+            if self.funkstack[index].count >= 0:
                 dot.node(str(index), self.funkstack[index].name+'('+ str(round(self.funkstack[index].sumtime,2))+'us)', color = color,shape='ellipse')
                 if self.funkstack[index].depth > 0:
                     dot.edge(str(depthfunc[self.funkstack[index].depth-1]), str(index))
-        dot.render('app/static/functree')
-        print("generate app/static/functree.svg")
+        dot.render('app/static/cache/functree')
+        print("generate app/static/cache/functree.svg")
 
     def findmax(self):
         for index in range(self.len):
@@ -221,6 +221,7 @@ class PidFunc():
             if funcnode.depth == depth:
                 if funcnode.duration != None:
                     print('wrong already have duration',funcnode.name,funcnode.duration)
+                    continue
                 funcnode.duration = duration
                 funcnode.rettime = timestamp
                 funcnode.sumtime += duration
@@ -331,11 +332,16 @@ class Ftrace():
         self.zclient.get_cmdout(self.makecmd("current_tracer","nop"))
         self.zclient.get_cmdout(self.makecmd("set_ftrace_pid"," "))
         self.zclient.get_cmdout(self.makecmd("max_graph_depth","0"))
+        self.zclient.get_cmdout(self.makecmd("set_ftrace_filter"," "))
+        self.zclient.get_cmdout(self.makecmd("set_graph_function"," "))
+        self.zclient.get_cmdout(self.makecmd("events/enable","0"))
+        self.zclient.get_cmdout(self.makecmd("tracing_thresh","0"))
+        self.zclient.get_cmdout(self.makecmd("kprobe_events"," "))
 
     def read(self):
         self.tracedata = self.zclient.get_seqread(self.basedir + "trace")
         if self.tracedata != None:
-            fh = open('app/static/perf/trace.data', 'wb')
+            fh = open('app/static/cache/trace.data', 'wb')
             fh.write(self.tracedata.encode())
             fh.close()
 
@@ -369,8 +375,8 @@ class Ftrace():
         stacktop = Stack()
 
         self.piddict = {}
-        pattern = re.compile(r'(\d*\.\d*) \|\s*(([\w|.]+)|(<\.*>))-(\d+)\s*\|\s*((\d*(\.\d*)?) us\s*)?\|  (\s*[\w|.|}]*)')
-        fh = open("app/static/perf/trace.data", 'r')
+        pattern = re.compile(r'(\d*\.\d*) \|\s*(([\w|.|-]+)|(<\.*>))-(\d+)\s*\|\s*((\d*(\.\d*)?) us\s*)?\|  (\s*[\w|.|}]*)')
+        fh = open("app/static/cache/trace.data", 'r')
         for line in fh.readlines():
             match = pattern.match(line)
             if match:
@@ -395,12 +401,12 @@ class Ftrace():
                         else:
                             print("not in process, drop this one")
                     else:
-                        if not self.piddict[pid].iswalk() and depth != 0:     #∫Ø ˝≤ª «¥”¡„ø™ º
+                        if not self.piddict[pid].iswalk() and depth != 0:     #ÂáΩÊï∞‰∏çÊòØ‰ªéÈõ∂ÂºÄÂßã
                             print("func not begin with depth 0, drop this one")
                         else:
                             if not self.piddict[pid].iswalk() and depth == 0:
                                 self.piddict[pid].walkstart()
-                            elif self.piddict[pid].iswalk() and depth == 0:     #…œ“ª∫Ø ˝“Ï≥£Ω· ¯
+                            elif self.piddict[pid].iswalk() and depth == 0:     #‰∏ä‰∏ÄÂáΩÊï∞ÂºÇÂ∏∏ÁªìÊùü
                                 print("last func did not end property",self.piddict[pid].len)
                                 self.piddict[pid].drop += 1
                                 self.piddict[pid].walkreset()
@@ -469,3 +475,21 @@ class Ftrace():
                 maxcount = data[r_index][c_index]
         return {'data':data, 'label':[latencylist[0][0],(latencylist[-1][0] - latencylist[0][0])/columns,latencymin,diffrows/rows,maxcount]}
 
+    def stack_to_flamestack(self):
+        root = {}
+        last = root
+        lastdepthmap = {}
+        lastdepth = 0
+        for sk in stacktop.funkstack:
+            newframe = {}
+            newframe['c'] = []
+            newframe['n'] = sk.name
+            #newframe['l'] = "kernel"
+            newframe['v'] = int(sk.sumtime*1000)
+            if sk.depth == 0:
+                root = newframe
+            if sk.depth-1 in lastdepthmap:
+                lastdepthmap[sk.depth-1]['c'].append(newframe)
+            lastdepthmap[sk.depth] = newframe
+            last = newframe
+        return root

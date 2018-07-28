@@ -1,12 +1,16 @@
-{% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% extends "task_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
     <h1 class="page-header">CPU使用</h1>
     <div class="container">
       <div id="pidtreemapdiff" style="min-width:400px;height:400px"></div>
       <div  align="center">
+      {% if isthread %}
+      <a class="btn btn-success" href="/thread_diffcpu">刷新</a>
+      {% else %}
       <a class="btn btn-success" href="/process_diffcpu">刷新</a>
+      {% endif %}
       </div>
     </div>
 {% endblock %}
@@ -31,7 +35,11 @@
                     renderTo: 'pidtreemapdiff',
             },
             title: {
-                    text: '进程当前运行时间分布'
+                    {% if isthread %}
+                        text: '线程当前运行时间分布'
+                    {% else %}
+                        text: '进程当前运行时间分布'
+                    {% endif %}
             },            
             credits: {  
               enabled:false  

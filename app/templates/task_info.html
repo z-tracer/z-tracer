@@ -1,13 +1,20 @@
-{% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% extends "task_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
+    {% if isthread %}
+    <h1 class="page-header">线程分析</h1>
+    {% else %}
     <h1 class="page-header">进程分析</h1>
-    <div class="container">
+    {% endif %}
       <div class="row">
         <div class="col-md-12">
         <table class="table table-condensed table-striped">
-          <caption>进程信息</caption>
+          {% if isthread %}
+          <caption>线程信息：{{ num }}</caption>
+          {% else %}
+          <caption>进程信息：{{ num }}</caption>
+          {% endif %}
           <thead>
             <tr>
               <th>pid</th>
@@ -38,12 +45,12 @@
           <tbody>
             {% for key in ordered %}
             <tr>
-              <td><a href="/process/{{ data[key].stat[0] }}">{{ data[key].stat[0] }}</a></td>
+              <td><a href="/task/{{ data[key].stat[0] }}">{{ data[key].stat[0] }}</a></td>
               <td>{{ data[key].stat[1] }}</td>
               <td>{{ data[key].stat[2] }}</td>
-              <td><a href="/process/{{ data[key].stat[3] }}">{{ data[key].stat[3] }}</td>
-              <td><a href="/process/{{ data[key].stat[4] }}">{{ data[key].stat[4] }}</td>
-              <td><a href="/process/{{ data[key].stat[5] }}">{{ data[key].stat[5] }}</td>
+              <td><a href="/task/{{ data[key].stat[3] }}">{{ data[key].stat[3] }}</td>
+              <td><a href="/task/{{ data[key].stat[4] }}">{{ data[key].stat[4] }}</td>
+              <td><a href="/task/{{ data[key].stat[5] }}">{{ data[key].stat[5] }}</td>
               <td>{{ data[key].stat[19] }}</td>
               <td>{{ data[key].stat[13] }}</td>
               <td>{{ data[key].stat[14] }}</td>
@@ -65,61 +72,49 @@
             {% endfor %}
           </tbody>
         </table>
+          <!--
           <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">查看树图</button>
-            <!-- 模态框（Modal） -->
             <div class="modal fade text-center" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
                     <div class="modal-content">
                         <div class="modal-header"></div>
                         <div class="modal-body">
                             <figure>
-                              <embed id="ptree1" type="image/svg+xml" src='/static/pstree.svg?={{ date }}'/>
+                              <embed id="ptree1" type="image/svg+xml" src='/static/cache/pstree.svg?={{ date }}'/>
                             </figure>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                         </div>
-                    </div><!-- /.modal-content -->
-                </div><!-- /.modal -->
+                    </div>
+                </div>
             </div>
-          <a class="btn btn-success" href="/process_monitor">进程监控</a>
+            <a class="btn btn-success" href="/process_monitor">进程监控</a>
+          -->
         </div>
       </div>
       <hr/>
+
+      {% if isthread %}
       <div id="pidtreemap" style="min-width:400px;height:800px"></div>
-      <div  align="center">
-      <a class="btn btn-success" href="/process_diffcpu">查看最近最繁忙进程</a>
-      </div>
+      <div  align="center"><a class="btn btn-success" href="/thread_diffcpu">查看最近最繁忙线程</a></div>
       <hr/>
       <div id="memtreemap" style="min-width:400px;height:400px"></div>
-      <div  align="center">
-      <a class="btn btn-success" href="/process_diffmem">查看最近内存变化</a>
-      </div>
-      <div class="col-md-12" id="pstree" style="min-width:400px;min-height:400px"></div>
-      </div>
+      <div  align="center"><a class="btn btn-success" href="/thread_diffmem">查看最近内存变化</a></div>
+      {% else %}
+      <div id="pidtreemap" style="min-width:400px;height:800px"></div>
+      <div  align="center"><a class="btn btn-success" href="/process_diffcpu">查看最近最繁忙进程</a></div>
+      <hr/>
+      <div id="memtreemap" style="min-width:400px;height:400px"></div>
+      <div  align="center"><a class="btn btn-success" href="/process_diffmem">查看最近内存变化</a></div>
+      {% endif %}
+
 {% endblock %}
 
 
 {% block scripts %}
 {{ super() }}
 <script type="text/javascript">
-    function autoupdate(){
-        $.post("/update/all",
-            {
-                data : 'pidtreemap',
-                id  : null,
-            },
-            function(data,status){
-                if(status == "success")
-                {
-                    if(data.src)
-                    {
-                    }
-
-                }
-        });
-    }
-    
     function create_data(len) {
         // 生成初始化空值
         var data = [],time = (new Date()).getTime(),i;
@@ -147,7 +142,7 @@
                     renderTo: 'pidtreemap',
             },
             title: {
-                    text: '进程总运行时间分布'
+                    text: '总运行时间分布'
             },
             credits: {  
               enabled:false  
@@ -244,6 +239,10 @@
                     ]
             }]
         });
-
+    {% if isthread %}
+    document.getElementById("nv_thinfo").setAttribute("class","active");
+    {% else %}
+    document.getElementById("nv_psinfo").setAttribute("class","active");
+    {% endif %}
 </script>
 {% endblock %}

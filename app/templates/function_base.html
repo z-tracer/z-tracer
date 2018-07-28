@@ -8,14 +8,9 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li id="nv_cpus"><a href="{{ url_for('.cpus') }}">cpu</a></li>
-            <li id="nv_interrupt"><a href="{{ url_for('.interrupts') }}">interrupt</a></li>
-            <li id="nv_softirq"><a href="{{ url_for('.softirqs') }}">softirq</a></li>
-            <li id="nv_syscall"><a href="#">syscall</a></li>
-            <li id="nv_signal"><a href="#">signal</a></li>
-            <li id="nv_timer"><a href="#">timer</a></li>
-            <li id="nv_lock"><a href="#">lock</a></li>
-            <li id="nv_off-cpu"><a href="#">off-cpu</a></li>
+            <li id="nv_funccount"><a href="{{ url_for('.cpus') }}">调用次数跟踪</a></li>
+            <li id="nv_funccallee"><a href="{{ url_for('.function_callee') }}">callee</a></li>
+            <li id="nv_funccaller"><a href="{{ url_for('.function_caller') }}">caller</a></li>
           </ul>
         </div>
         

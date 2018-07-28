@@ -1,9 +1,10 @@
-{% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Z-Tracer{% endblock %}
 
-{% block main_content %}
+{% block content %}
     <div id="root"></div>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/flamescope.js') }}?=3"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/flamescope/flamescope.js') }}?=3"></script>
     <style>
     a{
         color: #337ab7;

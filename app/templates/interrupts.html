@@ -1,5 +1,5 @@
 {% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
     <div class="container">
@@ -122,5 +122,6 @@
             ]
     });
     {% endfor %}
+    document.getElementById("nv_interrupt").setAttribute("class","active");
 </script>
 {% endblock %}

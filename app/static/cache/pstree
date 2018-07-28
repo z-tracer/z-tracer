@@ -1,0 +1,1061 @@
+// process tree
+digraph {
+	graph [rankdir=LR]
+	node [style=filled]
+	1 [label="systemd(1)" color="#96cdcd3f" shape=ellipse]
+	0 -> 1
+	2 [label="kthreadd(2)" color="#96cdcd3f" shape=ellipse]
+	0 -> 2
+	28676 [label="find(28676)" color="#96cdcd3f" shape=ellipse]
+	3200 -> 28676
+	86 [label="scsi_eh_1(86)" color="#96cdcd3f" shape=ellipse]
+	2 -> 86
+	6 [label="mm_percpu_wq(6)" color="#96cdcd3f" shape=ellipse]
+	2 -> 6
+	7 [label="ksoftirqd/0(7)" color="#96cdcd3f" shape=ellipse]
+	2 -> 7
+	p19976 [label="/usr/lib/gvfs/gvfs-afc-volume-monitor" color="#96cdcd3f" shape=box]
+	19480 -> p19976
+	19976 [label="gvfs-afc-volume(19976)" color="#96cdcd3f" shape=proteinstab]
+	p19976 -> 19976
+	19977 [label="gvfs-afc-volume(19977)" color="#96cdcd3f" shape=proteinstab]
+	p19976 -> 19977
+	19978 [label="gmain(19978)" color="#96cdcd3f" shape=proteinstab]
+	p19976 -> 19978
+	19980 [label="gdbus(19980)" color="#96cdcd3f" shape=proteinstab]
+	p19976 -> 19980
+	p5129 [label="/usr/bin/python3" color="#96cdcd3f" shape=box]
+	19480 -> p5129
+	5136 [label="gdbus(5136)" color="#96cdcd3f" shape=proteinstab]
+	p5129 -> 5136
+	5129 [label="update-manager(5129)" color="#96cdcd3f" shape=proteinstab]
+	p5129 -> 5129
+	5141 [label="dconf worker(5141)" color="#96cdcd3f" shape=proteinstab]
+	p5129 -> 5141
+	5135 [label="gmain(5135)" color="#96cdcd3f" shape=proteinstab]
+	p5129 -> 5135
+	10 [label="migration/0(10)" color="#cdaf953f" shape=ellipse]
+	2 -> 10
+	11 [label="watchdog/0(11)" color="#cdaf953f" shape=ellipse]
+	2 -> 11
+	12 [label="cpuhp/0(12)" color="#96cdcd3f" shape=ellipse]
+	2 -> 12
+	13 [label="cpuhp/1(13)" color="#96cdcd3f" shape=ellipse]
+	2 -> 13
+	14 [label="watchdog/1(14)" color="#cdaf953f" shape=ellipse]
+	2 -> 14
+	15 [label="migration/1(15)" color="#cdaf953f" shape=ellipse]
+	2 -> 15
+	16 [label="ksoftirqd/1(16)" color="#96cdcd3f" shape=ellipse]
+	2 -> 16
+	18 [label="kworker/1:0H(18)" color="#96cdcd3f" shape=ellipse]
+	2 -> 18
+	19 [label="kdevtmpfs(19)" color="#96cdcd3f" shape=ellipse]
+	2 -> 19
+	p19988 [label="/usr/lib/evolution/evolution-calendar-factory-subprocess" color="#96cdcd3f" shape=box]
+	19865 -> p19988
+	19996 [label="dconf worker(19996)" color="#96cdcd3f" shape=proteinstab]
+	p19988 -> 19996
+	19994 [label="gmain(19994)" color="#96cdcd3f" shape=proteinstab]
+	p19988 -> 19994
+	19995 [label="gdbus(19995)" color="#96cdcd3f" shape=proteinstab]
+	p19988 -> 19995
+	19988 [label="evolution-calen(19988)" color="#96cdcd3f" shape=proteinstab]
+	p19988 -> 19988
+	19997 [label="evolution-calen(19997)" color="#96cdcd3f" shape=proteinstab]
+	p19988 -> 19997
+	23 [label="khungtaskd(23)" color="#96cdcd3f" shape=ellipse]
+	2 -> 23
+	p19992 [label="/usr/lib/i386-linux-gnu/fwupd/fwupd" color="#96cdcd3f" shape=box]
+	1 -> p19992
+	20104 [label="GUsbEventThread(20104)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20104
+	20005 [label="gmain(20005)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20005
+	20102 [label="fwupd(20102)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20102
+	20103 [label="GUsbEventThread(20103)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20103
+	19992 [label="fwupd(19992)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 19992
+	20105 [label="GUsbEventThread(20105)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20105
+	20106 [label="gdbus(20106)" color="#96cdcd3f" shape=proteinstab]
+	p19992 -> 20106
+	25 [label="writeback(25)" color="#96cdcd3f" shape=ellipse]
+	2 -> 25
+	26 [label="kcompactd0(26)" color="#96cdcd3f" shape=ellipse]
+	2 -> 26
+	27 [label="ksmd(27)" color="#96cdcd3f" shape=ellipse]
+	2 -> 27
+	28 [label="khugepaged(28)" color="#96cdcd3f" shape=ellipse]
+	2 -> 28
+	29 [label="crypto(29)" color="#96cdcd3f" shape=ellipse]
+	2 -> 29
+	30 [label="kintegrityd(30)" color="#96cdcd3f" shape=ellipse]
+	2 -> 30
+	31 [label="kblockd(31)" color="#96cdcd3f" shape=ellipse]
+	2 -> 31
+	32 [label="ata_sff(32)" color="#96cdcd3f" shape=ellipse]
+	2 -> 32
+	1057 [label="log_file_daemon(1057)" color="#96cdcd3f" shape=ellipse]
+	920 -> 1057
+	p20002 [label="/usr/lib/evolution/evolution-calendar-factory-subprocess" color="#96cdcd3f" shape=box]
+	19865 -> p20002
+	20017 [label="evolution-calen(20017)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20017
+	20002 [label="evolution-calen(20002)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20002
+	20006 [label="gmain(20006)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20006
+	20007 [label="gdbus(20007)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20007
+	20008 [label="dconf worker(20008)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20008
+	20009 [label="evolution-calen(20009)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20009
+	20012 [label="pool(20012)" color="#96cdcd3f" shape=proteinstab]
+	p20002 -> 20012
+	35 [label="devfreq_wq(35)" color="#96cdcd3f" shape=ellipse]
+	2 -> 35
+	p20004 [label="/usr/lib/gvfs/gvfsd-metadata" color="#96cdcd3f" shape=box]
+	19480 -> p20004
+	20004 [label="gvfsd-metadata(20004)" color="#96cdcd3f" shape=proteinstab]
+	p20004 -> 20004
+	20014 [label="gmain(20014)" color="#96cdcd3f" shape=proteinstab]
+	p20004 -> 20014
+	20015 [label="gdbus(20015)" color="#96cdcd3f" shape=proteinstab]
+	p20004 -> 20015
+	38 [label="kauditd(38)" color="#96cdcd3f" shape=ellipse]
+	2 -> 38
+	39 [label="kswapd0(39)" color="#96cdcd3f" shape=ellipse]
+	2 -> 39
+	40 [label="ecryptfs-kthrea(40)" color="#96cdcd3f" shape=ellipse]
+	2 -> 40
+	2090 [label="sshd(2090)" color="#96cdcd3f" shape=ellipse]
+	871 -> 2090
+	8 [label="rcu_sched(8)" color="#96cdcd3f" shape=ellipse]
+	2 -> 8
+	19507 [label="x86-lepd(19507)" color="#96cdcd3f" shape=ellipse]
+	1 -> 19507
+	9 [label="rcu_bh(9)" color="#96cdcd3f" shape=ellipse]
+	2 -> 9
+	18863 [label="sshd(18863)" color="#96cdcd3f" shape=ellipse]
+	18785 -> 18863
+	p20031 [label="/usr/lib/evolution/evolution-addressbook-factory-subprocess" color="#96cdcd3f" shape=box]
+	20019 -> p20031
+	20039 [label="evolution-addre(20039)" color="#96cdcd3f" shape=proteinstab]
+	p20031 -> 20039
+	20035 [label="gmain(20035)" color="#96cdcd3f" shape=proteinstab]
+	p20031 -> 20035
+	20037 [label="gdbus(20037)" color="#96cdcd3f" shape=proteinstab]
+	p20031 -> 20037
+	20038 [label="dconf worker(20038)" color="#96cdcd3f" shape=proteinstab]
+	p20031 -> 20038
+	20031 [label="evolution-addre(20031)" color="#96cdcd3f" shape=proteinstab]
+	p20031 -> 20031
+	p20034 [label="fcitx-qimpanel" color="#96cdcd3f" shape=box]
+	19480 -> p20034
+	20034 [label="fcitx-qimpanel(20034)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20034
+	20051 [label="gdbus(20051)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20051
+	20098 [label="QQmlThread(20098)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20098
+	20055 [label="dconf worker(20055)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20055
+	20050 [label="gmain(20050)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20050
+	20045 [label="QXcbEventReader(20045)" color="#96cdcd3f" shape=proteinstab]
+	p20034 -> 20045
+	2118 [label="sshd(2118)" color="#96cdcd3f" shape=ellipse]
+	2090 -> 2118
+	2119 [label="bash(2119)" color="#96cdcd3f" shape=ellipse]
+	2118 -> 2119
+	p20044 [label="/usr/lib/gvfs/gvfsd-trash" color="#96cdcd3f" shape=box]
+	19480 -> p20044
+	20052 [label="gmain(20052)" color="#96cdcd3f" shape=proteinstab]
+	p20044 -> 20052
+	20044 [label="gvfsd-trash(20044)" color="#96cdcd3f" shape=proteinstab]
+	p20044 -> 20044
+	20053 [label="gdbus(20053)" color="#96cdcd3f" shape=proteinstab]
+	p20044 -> 20053
+	82 [label="kthrotld(82)" color="#96cdcd3f" shape=ellipse]
+	2 -> 82
+	18003 [label="sshd(18003)" color="#96cdcd3f" shape=ellipse]
+	17934 -> 18003
+	18004 [label="bash(18004)" color="#96cdcd3f" shape=ellipse]
+	18003 -> 18004
+	17934 [label="sshd(17934)" color="#96cdcd3f" shape=ellipse]
+	871 -> 17934
+	28758 [label="smbd(28758)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 28758
+	87 [label="scsi_tmf_1(87)" color="#96cdcd3f" shape=ellipse]
+	2 -> 87
+	9305 [label="kworker/u16:0(9305)" color="#96cdcd3f" shape=ellipse]
+	2 -> 9305
+	90 [label="scsi_eh_2(90)" color="#96cdcd3f" shape=ellipse]
+	2 -> 90
+	91 [label="scsi_tmf_2(91)" color="#96cdcd3f" shape=ellipse]
+	2 -> 91
+	92 [label="scsi_eh_3(92)" color="#96cdcd3f" shape=ellipse]
+	2 -> 92
+	93 [label="scsi_tmf_3(93)" color="#96cdcd3f" shape=ellipse]
+	2 -> 93
+	96 [label="ipv6_addrconf(96)" color="#96cdcd3f" shape=ellipse]
+	2 -> 96
+	9832 [label="kworker/1:2(9832)" color="#96cdcd3f" shape=ellipse]
+	2 -> 9832
+	30315 [label="cupsd(30315)" color="#96cdcd3f" shape=ellipse]
+	1 -> 30315
+	30320 [label="dbus(30320)" color="#96cdcd3f" shape=ellipse]
+	30315 -> 30320
+	19569 [label="upstart-udev-br(19569)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19569
+	19571 [label="dbus-daemon(19571)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19571
+	3192 [label="sudo(3192)" color="#96cdcd3f" shape=ellipse]
+	18004 -> 3192
+	20 [label="netns(20)" color="#96cdcd3f" shape=ellipse]
+	2 -> 20
+	122 [label="charger_manager(122)" color="#96cdcd3f" shape=ellipse]
+	2 -> 122
+	1659 [label="cfg80211(1659)" color="#96cdcd3f" shape=ellipse]
+	2 -> 1659
+	4 [label="kworker/0:0H(4)" color="#96cdcd3f" shape=ellipse]
+	2 -> 4
+	19583 [label="window-stack-br(19583)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19583
+	3200 [label="bash(3200)" color="#96cdcd3f" shape=ellipse]
+	3192 -> 3200
+	p705 [label="/usr/bin/whoopsie" color="#96cdcd3f" shape=box]
+	1 -> p705
+	705 [label="whoopsie(705)" color="#96cdcd3f" shape=proteinstab]
+	p705 -> 705
+	796 [label="gmain(796)" color="#96cdcd3f" shape=proteinstab]
+	p705 -> 796
+	797 [label="gdbus(797)" color="#96cdcd3f" shape=proteinstab]
+	p705 -> 797
+	p2186 [label="deja-dup" color="#6ca6cd3f" shape=box]
+	19480 -> p2186
+	2192 [label="gdbus(2192)" color="#6ca6cd3f" shape=proteinstab]
+	p2186 -> 2192
+	2193 [label="dconf worker(2193)" color="#6ca6cd3f" shape=proteinstab]
+	p2186 -> 2193
+	2186 [label="deja-dup(2186)" color="#6ca6cd3f" shape=proteinstab]
+	p2186 -> 2186
+	2191 [label="gmain(2191)" color="#6ca6cd3f" shape=proteinstab]
+	p2186 -> 2191
+	4631 [label="kworker/0:0(4631)" color="#96cdcd3f" shape=ellipse]
+	2 -> 4631
+	706 [label="acpid(706)" color="#96cdcd3f" shape=ellipse]
+	1 -> 706
+	p19679 [label="/usr/lib/i386-linux-gnu/hud/hud-service" color="#96cdcd3f" shape=box]
+	19480 -> p19679
+	19784 [label="dconf worker(19784)" color="#96cdcd3f" shape=proteinstab]
+	p19679 -> 19784
+	19783 [label="gdbus(19783)" color="#96cdcd3f" shape=proteinstab]
+	p19679 -> 19783
+	19782 [label="gmain(19782)" color="#96cdcd3f" shape=proteinstab]
+	p19679 -> 19782
+	19679 [label="hud-service(19679)" color="#96cdcd3f" shape=proteinstab]
+	p19679 -> 19679
+	655 [label="systemd-logind(655)" color="#96cdcd3f" shape=ellipse]
+	1 -> 655
+	19480 [label="upstart(19480)" color="#96cdcd3f" shape=ellipse]
+	1351 -> 19480
+	p658 [label="/usr/sbin/rsyslogd" color="#96cdcd3f" shape=box]
+	1 -> p658
+	658 [label="rsyslogd(658)" color="#96cdcd3f" shape=proteinstab]
+	p658 -> 658
+	668 [label="in:imuxsock(668)" color="#96cdcd3f" shape=proteinstab]
+	p658 -> 668
+	669 [label="in:imklog(669)" color="#96cdcd3f" shape=proteinstab]
+	p658 -> 669
+	670 [label="rs:main Q:Reg(670)" color="#96cdcd3f" shape=proteinstab]
+	p658 -> 670
+	660 [label="dbus-daemon(660)" color="#96cdcd3f" shape=ellipse]
+	1 -> 660
+	19605 [label="upstart-file-br(19605)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19605
+	19607 [label="upstart-dbus-br(19607)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19607
+	19609 [label="upstart-dbus-br(19609)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19609
+	667 [label="avahi-daemon(667)" color="#96cdcd3f" shape=ellipse]
+	657 -> 667
+	24221 [label="kworker/u16:0(24221)" color="#96cdcd3f" shape=ellipse]
+	2 -> 24221
+	18079 [label="smbd(18079)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 18079
+	p672 [label="/usr/sbin/ModemManager" color="#96cdcd3f" shape=box]
+	1 -> p672
+	672 [label="ModemManager(672)" color="#96cdcd3f" shape=proteinstab]
+	p672 -> 672
+	771 [label="gmain(771)" color="#96cdcd3f" shape=proteinstab]
+	p672 -> 771
+	775 [label="gdbus(775)" color="#96cdcd3f" shape=proteinstab]
+	p672 -> 775
+	p673 [label="/usr/sbin/NetworkManager" color="#96cdcd3f" shape=box]
+	1 -> p673
+	673 [label="NetworkManager(673)" color="#96cdcd3f" shape=proteinstab]
+	p673 -> 673
+	805 [label="gdbus(805)" color="#96cdcd3f" shape=proteinstab]
+	p673 -> 805
+	798 [label="gmain(798)" color="#96cdcd3f" shape=proteinstab]
+	p673 -> 798
+	p675 [label="/usr/lib/snapd/snapd" color="#96cdcd3f" shape=box]
+	1 -> p675
+	800 [label="snapd(800)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 800
+	801 [label="snapd(801)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 801
+	802 [label="snapd(802)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 802
+	675 [label="snapd(675)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 675
+	776 [label="snapd(776)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 776
+	777 [label="snapd(777)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 777
+	778 [label="snapd(778)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 778
+	799 [label="snapd(799)" color="#96cdcd3f" shape=proteinstab]
+	p675 -> 799
+	p710 [label="/usr/lib/accountsservice/accounts-daemon" color="#96cdcd3f" shape=box]
+	1 -> p710
+	746 [label="gmain(746)" color="#96cdcd3f" shape=proteinstab]
+	p710 -> 746
+	774 [label="gdbus(774)" color="#96cdcd3f" shape=proteinstab]
+	p710 -> 774
+	710 [label="accounts-daemon(710)" color="#96cdcd3f" shape=proteinstab]
+	p710 -> 710
+	166 [label="kworker/0:1H(166)" color="#96cdcd3f" shape=ellipse]
+	2 -> 166
+	167 [label="kworker/1:1H(167)" color="#96cdcd3f" shape=ellipse]
+	2 -> 167
+	168 [label="i915/signal:0(168)" color="#cdaf953f" shape=ellipse]
+	2 -> 168
+	p20651 [label="/usr/lib/gvfs/gvfsd-network" color="#96cdcd3f" shape=box]
+	19480 -> p20651
+	20658 [label="dconf worker(20658)" color="#96cdcd3f" shape=proteinstab]
+	p20651 -> 20658
+	20651 [label="gvfsd-network(20651)" color="#96cdcd3f" shape=proteinstab]
+	p20651 -> 20651
+	20653 [label="gmain(20653)" color="#96cdcd3f" shape=proteinstab]
+	p20651 -> 20653
+	20654 [label="gdbus(20654)" color="#96cdcd3f" shape=proteinstab]
+	p20651 -> 20654
+	p19634 [label="/usr/bin/fcitx" color="#96cdcd3f" shape=box]
+	19480 -> p19634
+	19634 [label="fcitx(19634)" color="#96cdcd3f" shape=proteinstab]
+	p19634 -> 19634
+	19684 [label="fcitx(19684)" color="#96cdcd3f" shape=proteinstab]
+	p19634 -> 19684
+	p20660 [label="/usr/lib/gvfs/gvfsd-smb-browse" color="#96cdcd3f" shape=box]
+	19480 -> p20660
+	20660 [label="gvfsd-smb-brows(20660)" color="#96cdcd3f" shape=proteinstab]
+	p20660 -> 20660
+	20677 [label="dconf worker(20677)" color="#96cdcd3f" shape=proteinstab]
+	p20660 -> 20677
+	20670 [label="gmain(20670)" color="#96cdcd3f" shape=proteinstab]
+	p20660 -> 20670
+	20671 [label="gdbus(20671)" color="#96cdcd3f" shape=proteinstab]
+	p20660 -> 20671
+	19642 [label="dbus-daemon(19642)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19642
+	p21791 [label="/usr/lib/i386-linux-gnu/unity/unity-panel-service" color="#96cdcd3f" shape=box]
+	19480 -> p21791
+	21792 [label="gmain(21792)" color="#96cdcd3f" shape=proteinstab]
+	p21791 -> 21792
+	21793 [label="gdbus(21793)" color="#96cdcd3f" shape=proteinstab]
+	p21791 -> 21793
+	21794 [label="dconf worker(21794)" color="#96cdcd3f" shape=proteinstab]
+	p21791 -> 21794
+	21791 [label="unity-panel-ser(21791)" color="#96cdcd3f" shape=proteinstab]
+	p21791 -> 21791
+	30396 [label="pinger(30396)" color="#96cdcd3f" shape=ellipse]
+	920 -> 30396
+	12990 [label="smbd(12990)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 12990
+	704 [label="cron(704)" color="#96cdcd3f" shape=ellipse]
+	1 -> 704
+	193 [label="jbd2/sda1-8(193)" color="#96cdcd3f" shape=ellipse]
+	2 -> 193
+	194 [label="ext4-rsv-conver(194)" color="#96cdcd3f" shape=ellipse]
+	2 -> 194
+	19652 [label="fcitx-dbus-watc(19652)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19652
+	p19654 [label="/usr/lib/i386-linux-gnu/bamf/bamfdaemon" color="#96cdcd3f" shape=box]
+	19480 -> p19654
+	19664 [label="gmain(19664)" color="#96cdcd3f" shape=proteinstab]
+	p19654 -> 19664
+	19665 [label="gdbus(19665)" color="#96cdcd3f" shape=proteinstab]
+	p19654 -> 19665
+	19674 [label="dconf worker(19674)" color="#96cdcd3f" shape=proteinstab]
+	p19654 -> 19674
+	19654 [label="bamfdaemon(19654)" color="#96cdcd3f" shape=proteinstab]
+	p19654 -> 19654
+	33 [label="md(33)" color="#96cdcd3f" shape=ellipse]
+	2 -> 33
+	19656 [label="gpg-agent(19656)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 19656
+	p20169 [label="zeitgeist-datahub" color="#96cdcd3f" shape=box]
+	19701 -> p20169
+	20169 [label="zeitgeist-datah(20169)" color="#96cdcd3f" shape=proteinstab]
+	p20169 -> 20169
+	20194 [label="pool(20194)" color="#96cdcd3f" shape=proteinstab]
+	p20169 -> 20194
+	20172 [label="gmain(20172)" color="#96cdcd3f" shape=proteinstab]
+	p20169 -> 20172
+	20173 [label="pool(20173)" color="#96cdcd3f" shape=proteinstab]
+	p20169 -> 20173
+	20174 [label="gdbus(20174)" color="#96cdcd3f" shape=proteinstab]
+	p20169 -> 20174
+	p20683 [label="/usr/lib/gvfs/gvfsd-dnssd" color="#96cdcd3f" shape=box]
+	19480 -> p20683
+	20683 [label="gvfsd-dnssd(20683)" color="#96cdcd3f" shape=proteinstab]
+	p20683 -> 20683
+	20684 [label="gmain(20684)" color="#96cdcd3f" shape=proteinstab]
+	p20683 -> 20684
+	20685 [label="gdbus(20685)" color="#96cdcd3f" shape=proteinstab]
+	p20683 -> 20685
+	34 [label="edac-poller(34)" color="#96cdcd3f" shape=ellipse]
+	2 -> 34
+	13006 [label="sshd(13006)" color="#96cdcd3f" shape=ellipse]
+	871 -> 13006
+	20176 [label="sh(20176)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 20176
+	14546 [label="bash(14546)" color="#6ca6cd3f" shape=ellipse]
+	6529 -> 14546
+	p19667 [label="/usr/lib/gvfs/gvfsd" color="#96cdcd3f" shape=box]
+	19480 -> p19667
+	19667 [label="gvfsd(19667)" color="#96cdcd3f" shape=proteinstab]
+	p19667 -> 19667
+	19668 [label="gmain(19668)" color="#96cdcd3f" shape=proteinstab]
+	p19667 -> 19668
+	19669 [label="gdbus(19669)" color="#96cdcd3f" shape=proteinstab]
+	p19667 -> 19669
+	p19918 [label="/usr/lib/udisks2/udisksd" color="#96cdcd3f" shape=box]
+	1 -> p19918
+	19936 [label="cleanup(19936)" color="#96cdcd3f" shape=proteinstab]
+	p19918 -> 19936
+	19922 [label="gmain(19922)" color="#96cdcd3f" shape=proteinstab]
+	p19918 -> 19922
+	19931 [label="probing-thread(19931)" color="#96cdcd3f" shape=proteinstab]
+	p19918 -> 19931
+	19924 [label="gdbus(19924)" color="#96cdcd3f" shape=proteinstab]
+	p19918 -> 19924
+	19918 [label="udisksd(19918)" color="#96cdcd3f" shape=proteinstab]
+	p19918 -> 19918
+	24 [label="oom_reaper(24)" color="#96cdcd3f" shape=ellipse]
+	2 -> 24
+	p20184 [label="/usr/bin/zeitgeist-daemon" color="#96cdcd3f" shape=box]
+	20176 -> p20184
+	20184 [label="zeitgeist-daemo(20184)" color="#96cdcd3f" shape=proteinstab]
+	p20184 -> 20184
+	20185 [label="gmain(20185)" color="#96cdcd3f" shape=proteinstab]
+	p20184 -> 20185
+	20186 [label="gdbus(20186)" color="#96cdcd3f" shape=proteinstab]
+	p20184 -> 20186
+	14041 [label="kworker/u16:1(14041)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14041
+	p20191 [label="/usr/lib/i386-linux-gnu/zeitgeist-fts" color="#96cdcd3f" shape=box]
+	19480 -> p20191
+	20204 [label="gmain(20204)" color="#96cdcd3f" shape=proteinstab]
+	p20191 -> 20204
+	20205 [label="gdbus(20205)" color="#96cdcd3f" shape=proteinstab]
+	p20191 -> 20205
+	20191 [label="zeitgeist-fts(20191)" color="#96cdcd3f" shape=proteinstab]
+	p20191 -> 20191
+	p19681 [label="/usr/lib/unity-settings-daemon/unity-settings-daemon" color="#96cdcd3f" shape=box]
+	19480 -> p19681
+	19681 [label="unity-settings-(19681)" color="#96cdcd3f" shape=proteinstab]
+	p19681 -> 19681
+	19706 [label="gmain(19706)" color="#96cdcd3f" shape=proteinstab]
+	p19681 -> 19706
+	19707 [label="gdbus(19707)" color="#96cdcd3f" shape=proteinstab]
+	p19681 -> 19707
+	19711 [label="dconf worker(19711)" color="#96cdcd3f" shape=proteinstab]
+	p19681 -> 19711
+	227 [label="systemd-journal(227)" color="#96cdcd3f" shape=ellipse]
+	1 -> 227
+	12516 [label="sh(12516)" color="#96cdcd3f" shape=ellipse]
+	19480 -> 12516
+	13033 [label="sshd(13033)" color="#96cdcd3f" shape=ellipse]
+	13006 -> 13033
+	13034 [label="bash(13034)" color="#96cdcd3f" shape=ellipse]
+	13033 -> 13034
+	p8487 [label="/home/zengyang/z82331/py/ztracer/venv/bin/python3" color="#96cdcd3f" shape=box]
+	3444 -> p8487
+	27875 [label="python3(27875)" color="#96cdcd3f" shape=proteinstab]
+	p8487 -> 27875
+	8492 [label="python3(8492)" color="#96cdcd3f" shape=proteinstab]
+	p8487 -> 8492
+	8487 [label="python3(8487)" color="#96cdcd3f" shape=proteinstab]
+	p8487 -> 8487
+	30099 [label="systemd(30099)" color="#96cdcd3f" shape=ellipse]
+	1 -> 30099
+	16085 [label="kworker/u16:2(16085)" color="#96cdcd3f" shape=ellipse]
+	2 -> 16085
+	p19700 [label="/usr/lib/at-spi2-core/at-spi-bus-launcher" color="#96cdcd3f" shape=box]
+	19480 -> p19700
+	19704 [label="gmain(19704)" color="#96cdcd3f" shape=proteinstab]
+	p19700 -> 19704
+	19705 [label="gdbus(19705)" color="#96cdcd3f" shape=proteinstab]
+	p19700 -> 19705
+	19700 [label="at-spi-bus-laun(19700)" color="#96cdcd3f" shape=proteinstab]
+	p19700 -> 19700
+	19708 [label="dconf worker(19708)" color="#96cdcd3f" shape=proteinstab]
+	p19700 -> 19708
+	p19701 [label="/usr/lib/gnome-session/gnome-session-binary" color="#96cdcd3f" shape=box]
+	19480 -> p19701
+	19721 [label="gmain(19721)" color="#96cdcd3f" shape=proteinstab]
+	p19701 -> 19721
+	19722 [label="gdbus(19722)" color="#96cdcd3f" shape=proteinstab]
+	p19701 -> 19722
+	19701 [label="gnome-session-b(19701)" color="#96cdcd3f" shape=proteinstab]
+	p19701 -> 19701
+	19749 [label="dconf worker(19749)" color="#96cdcd3f" shape=proteinstab]
+	p19701 -> 19749
+	p19703 [label="/usr/lib/i386-linux-gnu/unity/unity-panel-service" color="#96cdcd3f" shape=box]
+	19480 -> p19703
+	19720 [label="dconf worker(19720)" color="#96cdcd3f" shape=proteinstab]
+	p19703 -> 19720
+	19719 [label="gdbus(19719)" color="#96cdcd3f" shape=proteinstab]
+	p19703 -> 19719
+	19718 [label="gmain(19718)" color="#96cdcd3f" shape=proteinstab]
+	p19703 -> 19718
+	19703 [label="unity-panel-ser(19703)" color="#96cdcd3f" shape=proteinstab]
+	p19703 -> 19703
+	250 [label="systemd-udevd(250)" color="#96cdcd3f" shape=ellipse]
+	1 -> 250
+	14805 [label="jfsSync(14805)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14805
+	19712 [label="dbus-daemon(19712)" color="#96cdcd3f" shape=ellipse]
+	19700 -> 19712
+	8243 [label="bash(8243)" color="#96cdcd3f" shape=ellipse]
+	8241 -> 8243
+	p770 [label="/usr/sbin/lightdm" color="#96cdcd3f" shape=box]
+	1 -> p770
+	770 [label="lightdm(770)" color="#96cdcd3f" shape=proteinstab]
+	p770 -> 770
+	788 [label="gmain(788)" color="#96cdcd3f" shape=proteinstab]
+	p770 -> 788
+	790 [label="gdbus(790)" color="#96cdcd3f" shape=proteinstab]
+	p770 -> 790
+	871 [label="sshd(871)" color="#96cdcd3f" shape=ellipse]
+	1 -> 871
+	p897 [label="/usr/lib/xorg/Xorg" color="#96cdcd3f" shape=box]
+	770 -> p897
+	897 [label="Xorg(897)" color="#96cdcd3f" shape=proteinstab]
+	p897 -> 897
+	935 [label="Xorg(935)" color="#96cdcd3f" shape=proteinstab]
+	p897 -> 935
+	1291 [label="agetty(1291)" color="#96cdcd3f" shape=ellipse]
+	1 -> 1291
+	p19672 [label="/usr/lib/gvfs/gvfsd-fuse" color="#96cdcd3f" shape=box]
+	19480 -> p19672
+	19688 [label="gmain(19688)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19688
+	19686 [label="gvfsd-fuse(19686)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19686
+	19687 [label="gvfsd-fuse(19687)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19687
+	19672 [label="gvfsd-fuse(19672)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19672
+	19689 [label="gdbus(19689)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19689
+	19690 [label="gvfs-fuse-sub(19690)" color="#96cdcd3f" shape=proteinstab]
+	p19672 -> 19690
+	p19731 [label="/usr/lib/dconf/dconf-service" color="#96cdcd3f" shape=box]
+	19480 -> p19731
+	19731 [label="dconf-service(19731)" color="#96cdcd3f" shape=proteinstab]
+	p19731 -> 19731
+	19732 [label="gmain(19732)" color="#96cdcd3f" shape=proteinstab]
+	p19731 -> 19732
+	19733 [label="gdbus(19733)" color="#96cdcd3f" shape=proteinstab]
+	p19731 -> 19733
+	19735 [label="smbd(19735)" color="#96cdcd3f" shape=ellipse]
+	1 -> 19735
+	19736 [label="smbd(19736)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 19736
+	p19737 [label=compiz color="#96cdcd3f" shape=box]
+	19480 -> p19737
+	20833 [label="pool(20833)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 20833
+	20834 [label="pool(20834)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 20834
+	19737 [label="compiz(19737)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 19737
+	19738 [label="gmain(19738)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 19738
+	19755 [label="gdbus(19755)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 19755
+	19756 [label="dconf worker(19756)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 19756
+	21790 [label="pool(21790)" color="#96cdcd3f" shape=proteinstab]
+	p19737 -> 21790
+	19740 [label="smbd(19740)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 19740
+	p19743 [label="/usr/lib/at-spi2-core/at-spi2-registryd" color="#96cdcd3f" shape=box]
+	19480 -> p19743
+	19745 [label="gmain(19745)" color="#96cdcd3f" shape=proteinstab]
+	p19743 -> 19745
+	19746 [label="gdbus(19746)" color="#96cdcd3f" shape=proteinstab]
+	p19743 -> 19746
+	19743 [label="at-spi2-registr(19743)" color="#96cdcd3f" shape=proteinstab]
+	p19743 -> 19743
+	19744 [label="smbd(19744)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 19744
+	p19747 [label="/usr/lib/upower/upowerd" color="#96cdcd3f" shape=box]
+	1 -> p19747
+	19747 [label="upowerd(19747)" color="#96cdcd3f" shape=proteinstab]
+	p19747 -> 19747
+	19765 [label="gmain(19765)" color="#96cdcd3f" shape=proteinstab]
+	p19747 -> 19765
+	19766 [label="gdbus(19766)" color="#96cdcd3f" shape=proteinstab]
+	p19747 -> 19766
+	8241 [label="sshd(8241)" color="#96cdcd3f" shape=ellipse]
+	8164 -> 8241
+	p19754 [label="/usr/lib/i386-linux-gnu/notify-osd" color="#96cdcd3f" shape=box]
+	19480 -> p19754
+	19760 [label="gdbus(19760)" color="#96cdcd3f" shape=proteinstab]
+	p19754 -> 19760
+	19761 [label="dconf worker(19761)" color="#96cdcd3f" shape=proteinstab]
+	p19754 -> 19761
+	19754 [label="notify-osd(19754)" color="#96cdcd3f" shape=proteinstab]
+	p19754 -> 19754
+	19759 [label="gmain(19759)" color="#96cdcd3f" shape=proteinstab]
+	p19754 -> 19759
+	26929 [label="apps.plugin(26929)" color="#6ca6cd3f" shape=ellipse]
+	6529 -> 26929
+	p20019 [label="/usr/lib/evolution/evolution-addressbook-factory" color="#96cdcd3f" shape=box]
+	19480 -> p20019
+	20027 [label="dconf worker(20027)" color="#96cdcd3f" shape=proteinstab]
+	p20019 -> 20027
+	20026 [label="gdbus(20026)" color="#96cdcd3f" shape=proteinstab]
+	p20019 -> 20026
+	20019 [label="evolution-addre(20019)" color="#96cdcd3f" shape=proteinstab]
+	p20019 -> 20019
+	20028 [label="evolution-addre(20028)" color="#96cdcd3f" shape=proteinstab]
+	p20019 -> 20028
+	20022 [label="gmain(20022)" color="#96cdcd3f" shape=proteinstab]
+	p20019 -> 20022
+	13115 [label="sudo(13115)" color="#96cdcd3f" shape=ellipse]
+	13034 -> 13115
+	36 [label="watchdogd(36)" color="#96cdcd3f" shape=ellipse]
+	2 -> 36
+	9610 [label="kworker/0:1(9610)" color="#96cdcd3f" shape=ellipse]
+	2 -> 9610
+	32575 [label="kworker/1:1(32575)" color="#96cdcd3f" shape=ellipse]
+	2 -> 32575
+	28994 [label="smbd(28994)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 28994
+	p1351 [label=lightdm color="#96cdcd3f" shape=box]
+	770 -> p1351
+	19321 [label="gmain(19321)" color="#96cdcd3f" shape=proteinstab]
+	p1351 -> 19321
+	19322 [label="gdbus(19322)" color="#96cdcd3f" shape=proteinstab]
+	p1351 -> 19322
+	1351 [label="lightdm(1351)" color="#96cdcd3f" shape=proteinstab]
+	p1351 -> 1351
+	4937 [label="smbd(4937)" color="#96cdcd3f" shape=ellipse]
+	19735 -> 4937
+	p19789 [label="/usr/lib/i386-linux-gnu/indicator-messages/indicator-messages-service" color="#96cdcd3f" shape=box]
+	19480 -> p19789
+	19825 [label="dconf worker(19825)" color="#96cdcd3f" shape=proteinstab]
+	p19789 -> 19825
+	19799 [label="gdbus(19799)" color="#96cdcd3f" shape=proteinstab]
+	p19789 -> 19799
+	19789 [label="indicator-messa(19789)" color="#96cdcd3f" shape=proteinstab]
+	p19789 -> 19789
+	19797 [label="gmain(19797)" color="#96cdcd3f" shape=proteinstab]
+	p19789 -> 19797
+	p19790 [label="/usr/lib/i386-linux-gnu/indicator-bluetooth/indicator-bluetooth-service" color="#96cdcd3f" shape=box]
+	19480 -> p19790
+	19800 [label="gmain(19800)" color="#96cdcd3f" shape=proteinstab]
+	p19790 -> 19800
+	19808 [label="gdbus(19808)" color="#96cdcd3f" shape=proteinstab]
+	p19790 -> 19808
+	19790 [label="indicator-bluet(19790)" color="#96cdcd3f" shape=proteinstab]
+	p19790 -> 19790
+	19824 [label="dconf worker(19824)" color="#96cdcd3f" shape=proteinstab]
+	p19790 -> 19824
+	p19791 [label="/usr/lib/i386-linux-gnu/indicator-power/indicator-power-service" color="#96cdcd3f" shape=box]
+	19480 -> p19791
+	19831 [label="dconf worker(19831)" color="#96cdcd3f" shape=proteinstab]
+	p19791 -> 19831
+	19823 [label="gdbus(19823)" color="#96cdcd3f" shape=proteinstab]
+	p19791 -> 19823
+	19804 [label="gmain(19804)" color="#96cdcd3f" shape=proteinstab]
+	p19791 -> 19804
+	19791 [label="indicator-power(19791)" color="#96cdcd3f" shape=proteinstab]
+	p19791 -> 19791
+	p19792 [label="/usr/lib/i386-linux-gnu/indicator-datetime/indicator-datetime-service" color="#96cdcd3f" shape=box]
+	19480 -> p19792
+	19792 [label="indicator-datet(19792)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19792
+	19842 [label="gmain(19842)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19842
+	19843 [label="gdbus(19843)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19843
+	19844 [label="dconf worker(19844)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19844
+	19846 [label="pool(19846)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19846
+	19863 [label="indicator-datet(19863)" color="#96cdcd3f" shape=proteinstab]
+	p19792 -> 19863
+	p19793 [label="/usr/lib/i386-linux-gnu/indicator-keyboard/indicator-keyboard-service" color="#96cdcd3f" shape=box]
+	19480 -> p19793
+	19793 [label="indicator-keybo(19793)" color="#96cdcd3f" shape=proteinstab]
+	p19793 -> 19793
+	19827 [label="gmain(19827)" color="#96cdcd3f" shape=proteinstab]
+	p19793 -> 19827
+	19828 [label="gdbus(19828)" color="#96cdcd3f" shape=proteinstab]
+	p19793 -> 19828
+	19830 [label="dconf worker(19830)" color="#96cdcd3f" shape=proteinstab]
+	p19793 -> 19830
+	p19794 [label="/usr/lib/i386-linux-gnu/indicator-sound/indicator-sound-service" color="#96cdcd3f" shape=box]
+	19480 -> p19794
+	19794 [label="indicator-sound(19794)" color="#96cdcd3f" shape=proteinstab]
+	p19794 -> 19794
+	19802 [label="gmain(19802)" color="#96cdcd3f" shape=proteinstab]
+	p19794 -> 19802
+	19806 [label="gdbus(19806)" color="#96cdcd3f" shape=proteinstab]
+	p19794 -> 19806
+	19829 [label="dconf worker(19829)" color="#96cdcd3f" shape=proteinstab]
+	p19794 -> 19829
+	p19795 [label="/usr/lib/i386-linux-gnu/indicator-printers/indicator-printers-service" color="#96cdcd3f" shape=box]
+	19480 -> p19795
+	19832 [label="gmain(19832)" color="#96cdcd3f" shape=proteinstab]
+	p19795 -> 19832
+	19833 [label="gdbus(19833)" color="#96cdcd3f" shape=proteinstab]
+	p19795 -> 19833
+	19834 [label="dconf worker(19834)" color="#96cdcd3f" shape=proteinstab]
+	p19795 -> 19834
+	19795 [label="indicator-print(19795)" color="#96cdcd3f" shape=proteinstab]
+	p19795 -> 19795
+	p19796 [label="/usr/lib/i386-linux-gnu/indicator-session/indicator-session-service" color="#96cdcd3f" shape=box]
+	19480 -> p19796
+	19809 [label="gmain(19809)" color="#96cdcd3f" shape=proteinstab]
+	p19796 -> 19809
+	19810 [label="gdbus(19810)" color="#96cdcd3f" shape=proteinstab]
+	p19796 -> 19810
+	19811 [label="dconf worker(19811)" color="#96cdcd3f" shape=proteinstab]
+	p19796 -> 19811
+	19796 [label="indicator-sessi(19796)" color="#96cdcd3f" shape=proteinstab]
+	p19796 -> 19796
+	861 [label="irqbalance(861)" color="#96cdcd3f" shape=ellipse]
+	1 -> 861
+	18785 [label="sshd(18785)" color="#96cdcd3f" shape=ellipse]
+	871 -> 18785
+	17255 [label="ztracerd(17255)" color="#96cdcd3f" shape=ellipse]
+	13122 -> 17255
+	p19822 [label="/usr/lib/i386-linux-gnu/indicator-application/indicator-application-service" color="#96cdcd3f" shape=box]
+	19480 -> p19822
+	19835 [label="gmain(19835)" color="#96cdcd3f" shape=proteinstab]
+	p19822 -> 19835
+	19837 [label="gdbus(19837)" color="#96cdcd3f" shape=proteinstab]
+	p19822 -> 19837
+	19822 [label="indicator-appli(19822)" color="#96cdcd3f" shape=proteinstab]
+	p19822 -> 19822
+	19826 [label="nmbd(19826)" color="#96cdcd3f" shape=ellipse]
+	1 -> 19826
+	p19859 [label="/usr/bin/pulseaudio" color="#96cdcd3f" shape=box]
+	19480 -> p19859
+	19881 [label="alsa-sink-AD198(19881)" color="#7ccd7c3f" shape=proteinstab]
+	p19859 -> 19881
+	19859 [label="pulseaudio(19859)" color="#96cdcd3f" shape=proteinstab]
+	p19859 -> 19859
+	19883 [label="alsa-source-AD1(19883)" color="#7ccd7c3f" shape=proteinstab]
+	p19859 -> 19883
+	3444 [label="python3(3444)" color="#96cdcd3f" shape=ellipse]
+	16825 -> 3444
+	p12521 [label="/usr/lib/update-notifier/system-crash-notification" color="#96cdcd3f" shape=box]
+	12516 -> p12521
+	12528 [label="dconf worker(12528)" color="#96cdcd3f" shape=proteinstab]
+	p12521 -> 12528
+	12521 [label="system-crash-no(12521)" color="#96cdcd3f" shape=proteinstab]
+	p12521 -> 12521
+	12523 [label="gmain(12523)" color="#96cdcd3f" shape=proteinstab]
+	p12521 -> 12523
+	12524 [label="gdbus(12524)" color="#96cdcd3f" shape=proteinstab]
+	p12521 -> 12524
+	657 [label="avahi-daemon(657)" color="#96cdcd3f" shape=ellipse]
+	1 -> 657
+	p20348 [label="update-notifier" color="#96cdcd3f" shape=box]
+	19701 -> p20348
+	20352 [label="gdbus(20352)" color="#96cdcd3f" shape=proteinstab]
+	p20348 -> 20352
+	20353 [label="dconf worker(20353)" color="#96cdcd3f" shape=proteinstab]
+	p20348 -> 20353
+	20348 [label="update-notifier(20348)" color="#96cdcd3f" shape=proteinstab]
+	p20348 -> 20348
+	20351 [label="gmain(20351)" color="#96cdcd3f" shape=proteinstab]
+	p20348 -> 20351
+	p6529 [label="/usr/sbin/netdata" color="#6ca6cd3f" shape=box]
+	1 -> p6529
+	6529 [label="netdata(6529)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6529
+	6573 [label="netdata(6573)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6573
+	6574 [label="netdata(6574)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6574
+	6575 [label="netdata(6575)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6575
+	6576 [label="netdata(6576)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6576
+	6577 [label="netdata(6577)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6577
+	6579 [label="netdata(6579)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6579
+	6580 [label="netdata(6580)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6580
+	6581 [label="netdata(6581)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6581
+	6582 [label="netdata(6582)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6582
+	6583 [label="netdata(6583)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6583
+	6584 [label="netdata(6584)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6584
+	6588 [label="netdata(6588)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6588
+	6589 [label="netdata(6589)" color="#6ca6cd3f" shape=proteinstab]
+	p6529 -> 6589
+	30090 [label="sshd(30090)" color="#96cdcd3f" shape=ellipse]
+	871 -> 30090
+	p1419 [label="/usr/lib/rtkit/rtkit-daemon" color="#96cdcd3f" shape=box]
+	1 -> p1419
+	1419 [label="rtkit-daemon(1419)" color="#96cdcd3f" shape=proteinstab]
+	p1419 -> 1419
+	1420 [label="rtkit-daemon(1420)" color="#96cdcd3f" shape=proteinstab]
+	p1419 -> 1420
+	1421 [label="rtkit-daemon(1421)" color="#7ccd7c3f" shape=proteinstab]
+	p1419 -> 1421
+	p19852 [label="/usr/lib/evolution/evolution-source-registry" color="#96cdcd3f" shape=box]
+	19480 -> p19852
+	19852 [label="evolution-sourc(19852)" color="#96cdcd3f" shape=proteinstab]
+	p19852 -> 19852
+	19853 [label="gmain(19853)" color="#96cdcd3f" shape=proteinstab]
+	p19852 -> 19853
+	19854 [label="gdbus(19854)" color="#96cdcd3f" shape=proteinstab]
+	p19852 -> 19854
+	19855 [label="dconf worker(19855)" color="#96cdcd3f" shape=proteinstab]
+	p19852 -> 19855
+	13122 [label="bash(13122)" color="#96cdcd3f" shape=ellipse]
+	13115 -> 13122
+	p20881 [label="/usr/lib/i386-linux-gnu/deja-dup/deja-dup-monitor" color="#96cdcd3f" shape=box]
+	19701 -> p20881
+	20881 [label="deja-dup-monito(20881)" color="#96cdcd3f" shape=proteinstab]
+	p20881 -> 20881
+	20885 [label="gmain(20885)" color="#96cdcd3f" shape=proteinstab]
+	p20881 -> 20885
+	20886 [label="gdbus(20886)" color="#96cdcd3f" shape=proteinstab]
+	p20881 -> 20886
+	20887 [label="dconf worker(20887)" color="#96cdcd3f" shape=proteinstab]
+	p20881 -> 20887
+	14227 [label="sshd(14227)" color="#96cdcd3f" shape=ellipse]
+	871 -> 14227
+	30100 [label="(sd-pam)(30100)" color="#96cdcd3f" shape=ellipse]
+	30099 -> 30100
+	917 [label="squid(917)" color="#96cdcd3f" shape=ellipse]
+	1 -> 917
+	920 [label="squid(920)" color="#96cdcd3f" shape=ellipse]
+	917 -> 920
+	p19865 [label="/usr/lib/evolution/evolution-calendar-factory" color="#96cdcd3f" shape=box]
+	19480 -> p19865
+	19984 [label="dconf worker(19984)" color="#96cdcd3f" shape=proteinstab]
+	p19865 -> 19984
+	19865 [label="evolution-calen(19865)" color="#96cdcd3f" shape=proteinstab]
+	p19865 -> 19865
+	19971 [label="gmain(19971)" color="#96cdcd3f" shape=proteinstab]
+	p19865 -> 19971
+	19985 [label="evolution-calen(19985)" color="#96cdcd3f" shape=proteinstab]
+	p19865 -> 19985
+	19983 [label="gdbus(19983)" color="#96cdcd3f" shape=proteinstab]
+	p19865 -> 19983
+	1454 [label="systemd(1454)" color="#96cdcd3f" shape=ellipse]
+	1 -> 1454
+	1455 [label="(sd-pam)(1455)" color="#96cdcd3f" shape=ellipse]
+	1454 -> 1455
+	14256 [label="sshd(14256)" color="#96cdcd3f" shape=ellipse]
+	14227 -> 14256
+	14257 [label="bash(14257)" color="#96cdcd3f" shape=ellipse]
+	14256 -> 14257
+	18866 [label="bash(18866)" color="#96cdcd3f" shape=ellipse]
+	18863 -> 18866
+	p19891 [label="/usr/lib/colord/colord" color="#96cdcd3f" shape=box]
+	1 -> p19891
+	19891 [label="colord(19891)" color="#96cdcd3f" shape=proteinstab]
+	p19891 -> 19891
+	19892 [label="gmain(19892)" color="#96cdcd3f" shape=proteinstab]
+	p19891 -> 19892
+	19894 [label="gdbus(19894)" color="#96cdcd3f" shape=proteinstab]
+	p19891 -> 19894
+	948 [label="dnsmasq(948)" color="#96cdcd3f" shape=ellipse]
+	673 -> 948
+	16822 [label="sudo(16822)" color="#96cdcd3f" shape=ellipse]
+	8243 -> 16822
+	p11192 [label="/usr/lib/policykit-1/polkitd" color="#96cdcd3f" shape=box]
+	1 -> p11192
+	11192 [label="polkitd(11192)" color="#96cdcd3f" shape=proteinstab]
+	p11192 -> 11192
+	11193 [label="gmain(11193)" color="#96cdcd3f" shape=proteinstab]
+	p11192 -> 11193
+	11195 [label="gdbus(11195)" color="#96cdcd3f" shape=proteinstab]
+	p11192 -> 11195
+	16825 [label="bash(16825)" color="#96cdcd3f" shape=ellipse]
+	16822 -> 16825
+	27578 [label="kworker/u16:1(27578)" color="#96cdcd3f" shape=ellipse]
+	2 -> 27578
+	p19901 [label="/usr/lib/gvfs/gvfs-udisks2-volume-monitor" color="#96cdcd3f" shape=box]
+	19480 -> p19901
+	19904 [label="gdbus(19904)" color="#96cdcd3f" shape=proteinstab]
+	p19901 -> 19904
+	19901 [label="gvfs-udisks2-vo(19901)" color="#96cdcd3f" shape=proteinstab]
+	p19901 -> 19901
+	19903 [label="gmain(19903)" color="#96cdcd3f" shape=proteinstab]
+	p19901 -> 19903
+	475 [label="ext4-rsv-conver(475)" color="#96cdcd3f" shape=ellipse]
+	2 -> 475
+	p6591 [label="/usr/bin/python" color="#6ca6cd3f" shape=box]
+	6529 -> p6591
+	6880 [label="python(6880)" color="#6ca6cd3f" shape=proteinstab]
+	p6591 -> 6880
+	6879 [label="python(6879)" color="#6ca6cd3f" shape=proteinstab]
+	p6591 -> 6879
+	6878 [label="python(6878)" color="#6ca6cd3f" shape=proteinstab]
+	p6591 -> 6878
+	6591 [label="python(6591)" color="#6ca6cd3f" shape=proteinstab]
+	p6591 -> 6591
+	83 [label="acpi_thermal_pm(83)" color="#96cdcd3f" shape=ellipse]
+	2 -> 83
+	p19908 [label="/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1" color="#96cdcd3f" shape=box]
+	19701 -> p19908
+	19916 [label="dconf worker(19916)" color="#96cdcd3f" shape=proteinstab]
+	p19908 -> 19916
+	19914 [label="gmain(19914)" color="#96cdcd3f" shape=proteinstab]
+	p19908 -> 19914
+	19915 [label="gdbus(19915)" color="#96cdcd3f" shape=proteinstab]
+	p19908 -> 19915
+	19908 [label="polkit-gnome-au(19908)" color="#96cdcd3f" shape=proteinstab]
+	p19908 -> 19908
+	p19912 [label=nautilus color="#96cdcd3f" shape=box]
+	19701 -> p19912
+	20850 [label="pool(20850)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 20850
+	20851 [label="pool(20851)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 20851
+	19912 [label="nautilus(19912)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 19912
+	19949 [label="gmain(19949)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 19949
+	19950 [label="gdbus(19950)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 19950
+	19981 [label="dconf worker(19981)" color="#96cdcd3f" shape=proteinstab]
+	p19912 -> 19981
+	18894 [label="sudo(18894)" color="#96cdcd3f" shape=ellipse]
+	18866 -> 18894
+	14799 [label="xfs_mru_cache(14799)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14799
+	14802 [label="jfsIO(14802)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14802
+	14803 [label="jfsCommit(14803)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14803
+	14804 [label="jfsCommit(14804)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14804
+	p19925 [label="/usr/lib/unity-settings-daemon/unity-fallback-mount-helper" color="#96cdcd3f" shape=box]
+	19701 -> p19925
+	19938 [label="gmain(19938)" color="#96cdcd3f" shape=proteinstab]
+	p19925 -> 19938
+	19939 [label="gdbus(19939)" color="#96cdcd3f" shape=proteinstab]
+	p19925 -> 19939
+	19925 [label="unity-fallback-(19925)" color="#96cdcd3f" shape=proteinstab]
+	p19925 -> 19925
+	19942 [label="dconf worker(19942)" color="#96cdcd3f" shape=proteinstab]
+	p19925 -> 19942
+	474 [label="jbd2/sdb1-8(474)" color="#96cdcd3f" shape=ellipse]
+	2 -> 474
+	18907 [label="bash(18907)" color="#96cdcd3f" shape=ellipse]
+	18894 -> 18907
+	30173 [label="sshd(30173)" color="#96cdcd3f" shape=ellipse]
+	30090 -> 30173
+	30174 [label="bash(30174)" color="#96cdcd3f" shape=ellipse]
+	30173 -> 30174
+	p19935 [label="nm-applet" color="#96cdcd3f" shape=box]
+	19701 -> p19935
+	19968 [label="dconf worker(19968)" color="#96cdcd3f" shape=proteinstab]
+	p19935 -> 19968
+	19967 [label="gdbus(19967)" color="#96cdcd3f" shape=proteinstab]
+	p19935 -> 19967
+	19966 [label="gmain(19966)" color="#96cdcd3f" shape=proteinstab]
+	p19935 -> 19966
+	19935 [label="nm-applet(19935)" color="#96cdcd3f" shape=proteinstab]
+	p19935 -> 19935
+	84 [label="scsi_eh_0(84)" color="#96cdcd3f" shape=ellipse]
+	2 -> 84
+	p19937 [label="/usr/bin/gnome-software" color="#96cdcd3f" shape=box]
+	19701 -> p19937
+	19937 [label="gnome-software(19937)" color="#96cdcd3f" shape=proteinstab]
+	p19937 -> 19937
+	19962 [label="gdbus(19962)" color="#96cdcd3f" shape=proteinstab]
+	p19937 -> 19962
+	19965 [label="dconf worker(19965)" color="#96cdcd3f" shape=proteinstab]
+	p19937 -> 19965
+	19961 [label="gmain(19961)" color="#96cdcd3f" shape=proteinstab]
+	p19937 -> 19961
+	8164 [label="sshd(8164)" color="#96cdcd3f" shape=ellipse]
+	871 -> 8164
+	30886 [label="systemd(30886)" color="#96cdcd3f" shape=ellipse]
+	1 -> 30886
+	p19945 [label="/usr/lib/gvfs/gvfs-gphoto2-volume-monitor" color="#96cdcd3f" shape=box]
+	19480 -> p19945
+	19945 [label="gvfs-gphoto2-vo(19945)" color="#96cdcd3f" shape=proteinstab]
+	p19945 -> 19945
+	19955 [label="gdbus(19955)" color="#96cdcd3f" shape=proteinstab]
+	p19945 -> 19955
+	19953 [label="gmain(19953)" color="#96cdcd3f" shape=proteinstab]
+	p19945 -> 19953
+	p493 [label="/lib/systemd/systemd-timesyncd" color="#96cdcd3f" shape=box]
+	1 -> p493
+	493 [label="systemd-timesyn(493)" color="#96cdcd3f" shape=proteinstab]
+	p493 -> 493
+	502 [label="sd-resolve(502)" color="#96cdcd3f" shape=proteinstab]
+	p493 -> 502
+	30888 [label="(sd-pam)(30888)" color="#96cdcd3f" shape=ellipse]
+	30886 -> 30888
+	p19443 [label="/usr/bin/gnome-keyring-daemon" color="#96cdcd3f" shape=box]
+	1 -> p19443
+	19611 [label="timer(19611)" color="#96cdcd3f" shape=proteinstab]
+	p19443 -> 19611
+	19616 [label="gdbus(19616)" color="#96cdcd3f" shape=proteinstab]
+	p19443 -> 19616
+	19443 [label="gnome-keyring-d(19443)" color="#96cdcd3f" shape=proteinstab]
+	p19443 -> 19443
+	19444 [label="gmain(19444)" color="#96cdcd3f" shape=proteinstab]
+	p19443 -> 19444
+	p19957 [label="/usr/lib/gvfs/gvfs-mtp-volume-monitor" color="#96cdcd3f" shape=box]
+	19480 -> p19957
+	19960 [label="gdbus(19960)" color="#96cdcd3f" shape=proteinstab]
+	p19957 -> 19960
+	19957 [label="gvfs-mtp-volume(19957)" color="#96cdcd3f" shape=proteinstab]
+	p19957 -> 19957
+	19958 [label="gmain(19958)" color="#96cdcd3f" shape=proteinstab]
+	p19957 -> 19958
+	14798 [label="xfsalloc(14798)" color="#96cdcd3f" shape=ellipse]
+	2 -> 14798
+	6137 [label="uuidd(6137)" color="#96cdcd3f" shape=ellipse]
+	1 -> 6137
+	p19964 [label="/usr/lib/gvfs/gvfs-goa-volume-monitor" color="#96cdcd3f" shape=box]
+	19480 -> p19964
+	19972 [label="gmain(19972)" color="#96cdcd3f" shape=proteinstab]
+	p19964 -> 19972
+	19964 [label="gvfs-goa-volume(19964)" color="#96cdcd3f" shape=proteinstab]
+	p19964 -> 19964
+	19973 [label="gdbus(19973)" color="#96cdcd3f" shape=proteinstab]
+	p19964 -> 19973
+	85 [label="scsi_tmf_0(85)" color="#96cdcd3f" shape=ellipse]
+	2 -> 85
+}

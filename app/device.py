@@ -3,7 +3,10 @@ import socket
 import time
 import threading
 from app.zclient.zclient import Zclient
-from app.record.record import Loadavg, Process, Processes, Stat, Softirqs, Interrupts, Meminfo, Uptime
+#from app.record.record import Loadavg, Process, Processes, Stat, Softirqs, Interrupts, Meminfo, Uptime
+from app.record.cpu import Loadavg, Stat, Softirqs, Interrupts, Uptime
+from app.record.task import Process, Processes
+from app.record.mem import Meminfo
 
 class RecordDate():
     def __init__(self, **kwargs):

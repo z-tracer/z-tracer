@@ -1,71 +1,88 @@
-{% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% extends "function_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
-    <div class="container">
-        <div class="row">
-            <hr/>
-            <form action="" method="post"  class="form" role="form">
-            <div class="col-md-5">
-            <div class="form-group required form-inline">
-                <label class="control-label" for="func">函数*</label>
-                <input class="form-control" id="func" name="func" required type="text" value="" style="width:300px"">
-                <label id="funclist" class="btn btn-link" data-toggle="modal" data-target="#modalfunclist" >支持函数</label>
-            </div>
-            </div>
-            <div class="col-md-3">
-            <div class="form-group form-inline">
-                <label class="control-label" for="depth">深度</label>
-                <input class="form-control" id="depth" name="depth" type="text" value="1">
-            </div>
-            </div>
-            <div class="col-md-3">
-                <label id="ftracestart" class="btn btn-success">开始采样</label>
-                <label id="ftracestop" class="btn btn-danger">停止采样</label>
-            </div>
-            </form>
-            <div id="perfok" align="center" class="col-md-12">
-                <a id="ret"></a>
-            </div>
-            <div class="col-md-12" id="latencyheatmap" style="height: 400px; min-width: 400px; margin: 0 auto"></div>
-            <div class="col-md-12" id="pidlatency" style="min-width:400px;height:300px"></div>
-            <div class="col-md-12" id="pidruntime" style="min-width:400px;height:300px"></div>
-            <div class="col-md-12">
-                <table id="tt" class="table table-condensed table-striped">
-                </table>
-            </div>
 
-            <button id="functree" class="col-md-12 btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" style="display: none;">查看流程图</button>
-            <!-- 模态框（Modal） -->
-            <div class="modal fade text-center" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
-                    <div class="modal-content">
-                        <div class="modal-header"></div>
-                        <div id="funcdiv" class="modal-body">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                        </div>
-                    </div>
+    <hr/>
+    <form action="" method="post"  class="form" role="form">
+    <div class="col-md-6">
+    <div class="form-group required form-inline">
+        <label class="control-label" for="func">函数*</label>
+        <input class="form-control" id="func" name="func" required type="text" value="" style="width:300px"">
+        <label id="funclist" class="btn btn-link" data-toggle="modal" data-target="#modalfunclist" >支持函数</label>
+    </div>
+    </div>
+    <div class="col-md-3">
+    <div class="form-group form-inline">
+        <label class="control-label" for="depth">深度</label>
+        <input class="form-control" id="depth" name="depth" type="text" value="1">
+    </div>
+    </div>
+    <div class="col-md-3">
+        <label id="ftracestart" class="btn btn-success">开始采样</label>
+        <label id="ftracestop" class="btn btn-danger">停止采样</label>
+    </div>
+    </form>
+    <div id="perfok" align="center" class="col-md-12">
+        <a id="ret"></a>
+    </div>
+    <div class="col-md-12" id="latencyheatmap" style="height: 400px; min-width: 400px; margin: 0 auto"></div>
+    <div class="col-md-12" id="pidlatency" style="min-width:400px;height:300px"></div>
+    <div class="col-md-12" id="pidruntime" style="min-width:400px;height:300px"></div>
+    <div class="col-md-12">
+        <table id="tt" class="table table-condensed table-striped">
+        </table>
+    </div>
+
+    <button id="functree" class="col-md-12 btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" style="display: none;">查看流程图</button>
+    <!-- 模态框（Modal） -->
+    <div class="modal fade text-center" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div id="funcdiv" class="modal-body">
                 </div>
-            </div>
-
-            <div class="modal fade text-center" id="modalfunclist" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
-                    <div class="modal-content">
-                        <div class="modal-header"></div>
-                        <div id="funclistdiv" class="modal-body">
-                            <table id="functable" class="table table-condensed table-striped" style="font-size:10">
-                            </table>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                        </div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="modal fade text-center" id="modalfunclist" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div id="funclistdiv" class="modal-body">
+                    <table id="functable" class="table table-condensed table-striped" style="font-size:10">
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr/> 
+    <div class="col-md-12"">
+      <div class="pull-right">
+        <form class="form-inline" id="gfform">
+          <a class="btn" href="javascript: resetZoom();">Reset zoom</a>
+          <a class="btn" href="javascript: clear();">Clear</a>
+          <div class="form-group">
+            <input type="text" class="form-control" id="term">
+          </div>
+          <a class="btn btn-primary" href="javascript: search();">Search</a>
+        </form>
+      </div>
+      <div id="gfchart">
+      </div>
+      <hr>
+      <div id="details">
+      </div>
+    </div>
+
 {% endblock %}
 
 
@@ -87,7 +104,10 @@
     var latencystep = 1;
     var funcname = 0
     var funcimg = 0;
-
+    var flameGraph;
+    var funcdepth = 0;
+    var gfdiv = 0;
+    
     $("#funclist").click(function(){
         $.post("/ftrace/funclist",
         {
@@ -129,7 +149,8 @@
         cnt = 0; 
         done = 0;
         begintime = (new Date()).getTime();
-        funcname = $("#func").val()
+        funcname = $("#func").val();
+        funcdepth = $("#depth").val();
         $.post("/ftrace/start",
         {
             func : $("#func").val(),
@@ -396,6 +417,60 @@
                     }
                     option.series[0].data = hdata;
                     var chart_heatmap = new Highcharts.Chart(option);
+                
+                    /************************************创建火焰图******************************/
+                    var hei = funcdepth*18+20;
+                    flameGraph = d3.flamegraph()
+                      //.height(hei)
+                      .width(960)
+                      .cellHeight(18)
+                      .transitionDuration(0)
+                      .minFrameSize(0)
+                      .transitionEase(d3.easeCubic)
+                      .sort(true)
+                      //Example to sort in reverse order
+                      //.sort(function(a,b){ return d3.descending(a.name, b.name);})
+                      .title("");
+
+                    // Example on how to use custom tooltips using d3-tip.
+                    var tip = d3.tip()
+                      .direction("s")
+                      .offset([8, 0])
+                      .attr('class', 'd3-flame-graph-tip')
+                      .html(function(d) { return "name: " + d.data.n + ", value: " + d.data.v; });
+
+                    flameGraph.tooltip(tip);
+
+                    var details = document.getElementById("details");
+                    flameGraph.details(details);
+
+                    var start = {
+                      "name": "root",
+                      "value": 1,
+                      "children": []
+                    }
+
+                    var parent = document.getElementById("gfchart")
+                    if(gfdiv != 0)
+                        parent.removeChild(gfdiv)
+                    gfdiv = document.createElement("div"); 
+                    gfdiv.setAttribute("id","gfdiv")
+                    parent.appendChild(gfdiv); 
+                    
+                    d3.select("#gfdiv")
+                        .datum(data.flame)
+                        .call(flameGraph);
+                    /*
+                        d3.select("#gfchart")
+                          .datum(start)
+                          .call(flameGraph);
+                      d3.json("static/perf/stacks.json", function(error, data) {
+                        if (error) return console.warn(error);
+                        d3.select("#gfchart")
+                          .datum(data)
+                          .call(flameGraph);
+                      });*/
+
                 }
                 else
                 {
@@ -457,7 +532,7 @@
             imgContainer.removeChild(funcimg)
 
         funcimg=new Image();
-        funcimg.src="/static/functree.svg?="+(new Date()).valueOf();
+        funcimg.src="/static/cache/functree.svg?="+(new Date()).valueOf();
         imgContainer.appendChild(funcimg);
     });
 /**
@@ -520,5 +595,25 @@
         H.seriesTypes.heatmap.prototype.directTouch = false; // Use k-d-tree
 }(Highcharts));
 
+    document.getElementById("gfform").addEventListener("submit", function(event){
+      event.preventDefault();
+      search();
+    });
+
+    function search() {
+      var term = document.getElementById("term").value;
+      flameGraph.search(term);
+    }
+
+    function clear() {
+      document.getElementById('term').value = '';
+      flameGraph.clear();
+    }
+
+    function resetZoom() {
+      flameGraph.resetZoom();
+    }
+
+    document.getElementById("nv_funccallee").setAttribute("class","active");
 </script>
 {% endblock %}

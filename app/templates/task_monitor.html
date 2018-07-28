@@ -1,5 +1,5 @@
-{% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% extends "task_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
 
@@ -30,7 +30,7 @@
 {{ super() }}
 <script type="text/javascript">
     function autoupdate(){
-        $.post("/update/all",
+        $.post("/update/processes",
         {
             data : 'processes',
             id  : null,
@@ -636,6 +636,6 @@
             },  
             series: []
         });
-
+    document.getElementById("nv_psmon").setAttribute("class","active");
 </script>
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}ZTracer{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li class="active"><a>CPU分析 <span class="sr-only">(current)</span></a></li>
+            <li><a href="{{ url_for('.cpus') }}">cpu</a></li>
+            <li><a href="{{ url_for('.process') }}">process</a></li>
+            <li><a href="{{ url_for('.function') }}">function</a></li>
+            <li><a href="{{ url_for('.interrupts') }}">interrupt</a></li>
+            <li><a href="{{ url_for('.softirqs') }}">softirq</a></li>
+            <li><a href="#">signal</a></li>
+            <li><a href="#">timer</a></li>
+            <li><a href="#">lock</a></li>
+            <li><a href="#">off-cpu</a></li>
+            <li><a href="#">syscall</a></li>
+            <li><a href="{{ url_for('.perf') }}">flamescope</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="entry">
+            {% block main_content %}
+            {% endblock %}
+            </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}

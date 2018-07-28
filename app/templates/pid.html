@@ -1,5 +1,5 @@
 {% extends "cpu_base.html" %}
-{% block title %}ZTracer{% endblock %}
+{% block title %}Z-Tracer{% endblock %}
 
 {% block main_content %}
     <h1 class="page-header">{{ data.comm }}</h1>
@@ -226,7 +226,7 @@
 {{ super() }}
 <script type="text/javascript">
     function autoupdate(){
-        $.post("/update/all",
+        $.post("/update/pid",
             {
                 data : 'pidvmmem',
                 id  : {{ data.pid }},

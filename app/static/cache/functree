@@ -1,0 +1,748 @@
+// function tree
+digraph {
+	graph [rankdir=LR]
+	node [style=filled]
+	0 [label="vfs_read(2437.56us)" color="#ff0033" shape=ellipse]
+	1 [label="rw_verify_area(130.51us)" color="#96cdcd3f" shape=ellipse]
+	0 -> 1
+	2 [label="security_file_permission(109.01us)" color="#96cdcd3f" shape=ellipse]
+	1 -> 2
+	3 [label="apparmor_file_permission(47.48us)" color="#96cdcd3f" shape=ellipse]
+	2 -> 3
+	4 [label="common_file_perm(27.48us)" color="#96cdcd3f" shape=ellipse]
+	3 -> 4
+	5 [label="aa_file_perm(4.09us)" color="#96cdcd3f" shape=ellipse]
+	4 -> 5
+	6 [label="__fsnotify_parent(2.86us)" color="#96cdcd3f" shape=ellipse]
+	2 -> 6
+	7 [label="fsnotify(3.57us)" color="#96cdcd3f" shape=ellipse]
+	2 -> 7
+	8 [label="__vfs_read(2228.19us)" color="#ff0033" shape=ellipse]
+	0 -> 8
+	9 [label="new_sync_read(2000.62us)" color="#ff0033" shape=ellipse]
+	8 -> 9
+	10 [label="sock_read_iter(1905.34us)" color="#ff0033" shape=ellipse]
+	9 -> 10
+	11 [label="sock_recvmsg(1890.01us)" color="#ff0033" shape=ellipse]
+	10 -> 11
+	12 [label="security_socket_recvmsg(125.05us)" color="#96cdcd3f" shape=ellipse]
+	11 -> 12
+	13 [label="apparmor_socket_recvmsg(107.86us)" color="#96cdcd3f" shape=ellipse]
+	12 -> 13
+	14 [label="aa_sock_msg_perm(93.23us)" color="#96cdcd3f" shape=ellipse]
+	13 -> 14
+	15 [label="aa_sk_perm(78.66us)" color="#96cdcd3f" shape=ellipse]
+	14 -> 15
+	16 [label="aa_label_sk_perm(3.18us)" color="#96cdcd3f" shape=ellipse]
+	15 -> 16
+	17 [label="inet_recvmsg(1736.73us)" color="#ff0033" shape=ellipse]
+	11 -> 17
+	18 [label="tcp_recvmsg(1611.66us)" color="#ff0033" shape=ellipse]
+	17 -> 18
+	19 [label="lock_sock_nested(45.6us)" color="#96cdcd3f" shape=ellipse]
+	18 -> 19
+	20 [label="_cond_resched(1.98us)" color="#96cdcd3f" shape=ellipse]
+	19 -> 20
+	21 [label="_raw_spin_lock_bh(2.56us)" color="#96cdcd3f" shape=ellipse]
+	19 -> 21
+	22 [label="__local_bh_enable_ip(2.29us)" color="#96cdcd3f" shape=ellipse]
+	19 -> 22
+	23 [label="skb_copy_datagram_iter(167.92us)" color="#96cdcd3f" shape=ellipse]
+	18 -> 23
+	24 [label="__check_object_size(37.66us)" color="#96cdcd3f" shape=ellipse]
+	23 -> 24
+	25 [label="__virt_addr_valid(2.29us)" color="#96cdcd3f" shape=ellipse]
+	24 -> 25
+	26 [label="__check_heap_object(4.28us)" color="#96cdcd3f" shape=ellipse]
+	24 -> 26
+	27 [label="page_address(0.39us)" color="#96cdcd3f" shape=ellipse]
+	26 -> 27
+	28 [label="check_stack_object(1.97us)" color="#96cdcd3f" shape=ellipse]
+	24 -> 28
+	29 [label="__copy_user_ll(10.12us)" color="#96cdcd3f" shape=ellipse]
+	23 -> 29
+	30 [label="kmap_atomic(14.01us)" color="#96cdcd3f" shape=ellipse]
+	23 -> 30
+	31 [label="kmap_atomic_prot(7.63us)" color="#96cdcd3f" shape=ellipse]
+	30 -> 31
+	32 [label="page_address(0.97us)" color="#96cdcd3f" shape=ellipse]
+	31 -> 32
+	33 [label="__copy_user_ll(48.02us)" color="#96cdcd3f" shape=ellipse]
+	23 -> 33
+	34 [label="__kunmap_atomic(1.0us)" color="#96cdcd3f" shape=ellipse]
+	23 -> 34
+	35 [label="tcp_rcv_space_adjust(2.37us)" color="#96cdcd3f" shape=ellipse]
+	18 -> 35
+	36 [label="__kfree_skb(153.04us)" color="#96cdcd3f" shape=ellipse]
+	18 -> 36
+	37 [label="skb_release_all(70.79us)" color="#96cdcd3f" shape=ellipse]
+	36 -> 37
+	38 [label="skb_release_head_state(17.57us)" color="#96cdcd3f" shape=ellipse]
+	37 -> 38
+	39 [label="dst_release(0.34us)" color="#96cdcd3f" shape=ellipse]
+	38 -> 39
+	40 [label="sock_rfree(2.08us)" color="#96cdcd3f" shape=ellipse]
+	38 -> 40
+	41 [label="skb_release_data(30.65us)" color="#96cdcd3f" shape=ellipse]
+	37 -> 41
+	42 [label="skb_free_head(18.71us)" color="#96cdcd3f" shape=ellipse]
+	41 -> 42
+	43 [label="page_frag_free(7.22us)" color="#96cdcd3f" shape=ellipse]
+	42 -> 43
+	44 [label="__free_pages_ok(4.72us)" color="#96cdcd3f" shape=ellipse]
+	43 -> 44
+	45 [label="page_address(0.21us)" color="#96cdcd3f" shape=ellipse]
+	44 -> 45
+	46 [label="free_one_page(2.1us)" color="#96cdcd3f" shape=ellipse]
+	44 -> 46
+	47 [label="_raw_spin_lock(0.27us)" color="#96cdcd3f" shape=ellipse]
+	46 -> 47
+	48 [label="__mod_zone_page_state(0.27us)" color="#96cdcd3f" shape=ellipse]
+	46 -> 48
+	49 [label="kfree(0.14us)" color="#96cdcd3f" shape=ellipse]
+	42 -> 49
+	50 [label="kfree_skbmem(59.27us)" color="#96cdcd3f" shape=ellipse]
+	36 -> 50
+	51 [label="kmem_cache_free(4.26us)" color="#96cdcd3f" shape=ellipse]
+	50 -> 51
+	52 [label="__slab_free(0.4us)" color="#96cdcd3f" shape=ellipse]
+	51 -> 52
+	53 [label="tcp_cleanup_rbuf(904.77us)" color="#ff0033" shape=ellipse]
+	18 -> 53
+	54 [label="tcp_send_ack(891.51us)" color="#ff0033" shape=ellipse]
+	53 -> 54
+	55 [label="bictcp_cwnd_event(0.81us)" color="#96cdcd3f" shape=ellipse]
+	54 -> 55
+	56 [label="__alloc_skb(89.81us)" color="#96cdcd3f" shape=ellipse]
+	54 -> 56
+	57 [label="kmem_cache_alloc(1.08us)" color="#96cdcd3f" shape=ellipse]
+	56 -> 57
+	58 [label="__kmalloc_reserve.isra.42(15.8us)" color="#96cdcd3f" shape=ellipse]
+	56 -> 58
+	59 [label="__kmalloc_track_caller(10.08us)" color="#96cdcd3f" shape=ellipse]
+	58 -> 59
+	60 [label="kmalloc_slab(1.05us)" color="#96cdcd3f" shape=ellipse]
+	59 -> 60
+	61 [label="__slab_alloc.constprop.75(1.18us)" color="#96cdcd3f" shape=ellipse]
+	59 -> 61
+	62 [label="___slab_alloc.constprop.76(0.53us)" color="#96cdcd3f" shape=ellipse]
+	61 -> 62
+	63 [label="ksize(1.14us)" color="#96cdcd3f" shape=ellipse]
+	56 -> 63
+	64 [label="tcp_transmit_skb(784.38us)" color="#ff0033" shape=ellipse]
+	54 -> 64
+	65 [label="tcp_established_options(13.48us)" color="#96cdcd3f" shape=ellipse]
+	64 -> 65
+	66 [label="tcp_v4_md5_lookup(6.97us)" color="#96cdcd3f" shape=ellipse]
+	65 -> 66
+	67 [label="tcp_md5_do_lookup(0.81us)" color="#96cdcd3f" shape=ellipse]
+	66 -> 67
+	68 [label="skb_push(0.87us)" color="#96cdcd3f" shape=ellipse]
+	64 -> 68
+	69 [label="tcp_options_write(0.94us)" color="#96cdcd3f" shape=ellipse]
+	64 -> 69
+	70 [label="__tcp_select_window(0.93us)" color="#96cdcd3f" shape=ellipse]
+	64 -> 70
+	71 [label="tcp_v4_send_check(7.18us)" color="#96cdcd3f" shape=ellipse]
+	64 -> 71
+	72 [label="__tcp_v4_send_check(1.04us)" color="#96cdcd3f" shape=ellipse]
+	71 -> 72
+	73 [label="ip_queue_xmit(726.26us)" color="#ff0033" shape=ellipse]
+	64 -> 73
+	74 [label="__sk_dst_check(7.11us)" color="#96cdcd3f" shape=ellipse]
+	73 -> 74
+	75 [label="ipv4_dst_check(0.87us)" color="#96cdcd3f" shape=ellipse]
+	74 -> 75
+	76 [label="skb_push(0.85us)" color="#96cdcd3f" shape=ellipse]
+	73 -> 76
+	77 [label="ip_copy_addrs(1.0us)" color="#96cdcd3f" shape=ellipse]
+	73 -> 77
+	78 [label="ip_local_out(694.82us)" color="#ff0033" shape=ellipse]
+	73 -> 78
+	79 [label="__ip_local_out(1.12us)" color="#96cdcd3f" shape=ellipse]
+	78 -> 79
+	80 [label="ip_output(340.98us)" color="#ff0033" shape=ellipse]
+	78 -> 80
+	81 [label="__local_bh_enable_ip(0.87us)" color="#96cdcd3f" shape=ellipse]
+	80 -> 81
+	82 [label="ip_finish_output(264.81us)" color="#ff0033" shape=ellipse]
+	80 -> 82
+	83 [label="ipv4_mtu(1.02us)" color="#96cdcd3f" shape=ellipse]
+	82 -> 83
+	84 [label="ip_finish_output2(165.66us)" color="#ff0033" shape=ellipse]
+	82 -> 84
+	85 [label="skb_push(0.84us)" color="#96cdcd3f" shape=ellipse]
+	84 -> 85
+	86 [label="dev_queue_xmit(145.11us)" color="#ff0033" shape=ellipse]
+	84 -> 86
+	87 [label="__dev_queue_xmit(138.65us)" color="#ff0033" shape=ellipse]
+	86 -> 87
+	88 [label="netdev_pick_tx(1.02us)" color="#96cdcd3f" shape=ellipse]
+	87 -> 88
+	89 [label="_raw_spin_lock(0.94us)" color="#96cdcd3f" shape=ellipse]
+	87 -> 89
+	90 [label="sch_direct_xmit(112.03us)" color="#ff0033" shape=ellipse]
+	87 -> 90
+	91 [label="validate_xmit_skb_list(54.54us)" color="#96cdcd3f" shape=ellipse]
+	90 -> 91
+	92 [label="validate_xmit_skb(48.62us)" color="#96cdcd3f" shape=ellipse]
+	91 -> 92
+	93 [label="netif_skb_features(9.1us)" color="#96cdcd3f" shape=ellipse]
+	92 -> 93
+	94 [label="skb_network_protocol(0.91us)" color="#96cdcd3f" shape=ellipse]
+	93 -> 94
+	95 [label="validate_xmit_xfrm(0.9us)" color="#96cdcd3f" shape=ellipse]
+	92 -> 95
+	96 [label="skb_csum_hwoffload_help(21.37us)" color="#96cdcd3f" shape=ellipse]
+	92 -> 96
+	97 [label="skb_checksum_help(15.15us)" color="#96cdcd3f" shape=ellipse]
+	96 -> 97
+	98 [label="skb_checksum(8.77us)" color="#96cdcd3f" shape=ellipse]
+	97 -> 98
+	99 [label="__skb_checksum(2.56us)" color="#96cdcd3f" shape=ellipse]
+	98 -> 99
+	100 [label="_raw_spin_lock(0.98us)" color="#96cdcd3f" shape=ellipse]
+	90 -> 100
+	101 [label="dev_hard_start_xmit(33.74us)" color="#96cdcd3f" shape=ellipse]
+	90 -> 101
+	102 [label="rtl8169_start_xmit(27.26us)" color="#96cdcd3f" shape=ellipse]
+	101 -> 102
+	103 [label="rtl8169_tso_csum_v1(0.82us)" color="#96cdcd3f" shape=ellipse]
+	102 -> 103
+	104 [label="nommu_map_page(7.18us)" color="#96cdcd3f" shape=ellipse]
+	102 -> 104
+	105 [label="check_addr(1.1us)" color="#96cdcd3f" shape=ellipse]
+	104 -> 105
+	106 [label="nommu_mapping_error(0.83us)" color="#96cdcd3f" shape=ellipse]
+	102 -> 106
+	107 [label="_raw_spin_lock(0.97us)" color="#96cdcd3f" shape=ellipse]
+	90 -> 107
+	108 [label="__local_bh_enable_ip(1.03us)" color="#96cdcd3f" shape=ellipse]
+	87 -> 108
+	109 [label="__tcp_select_window(0.84us)" color="#96cdcd3f" shape=ellipse]
+	53 -> 109
+	110 [label="release_sock(260.49us)" color="#96cdcd3f" shape=ellipse]
+	18 -> 110
+	111 [label="_raw_spin_lock_bh(2.39us)" color="#96cdcd3f" shape=ellipse]
+	110 -> 111
+	112 [label="__release_sock(82.62us)" color="#96cdcd3f" shape=ellipse]
+	110 -> 112
+	113 [label="_raw_spin_unlock_bh(2.97us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 113
+	114 [label="__local_bh_enable_ip(0.42us)" color="#96cdcd3f" shape=ellipse]
+	113 -> 114
+	115 [label="tcp_v4_do_rcv(50.31us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 115
+	116 [label="ipv4_dst_check(0.39us)" color="#96cdcd3f" shape=ellipse]
+	115 -> 116
+	117 [label="tcp_rcv_established(45.01us)" color="#96cdcd3f" shape=ellipse]
+	115 -> 117
+	118 [label="tcp_queue_rcv(0.52us)" color="#96cdcd3f" shape=ellipse]
+	117 -> 118
+	119 [label="tcp_event_data_recv(3.56us)" color="#96cdcd3f" shape=ellipse]
+	117 -> 119
+	120 [label="tcp_grow_window.isra.42(0.41us)" color="#96cdcd3f" shape=ellipse]
+	119 -> 120
+	121 [label="__tcp_ack_snd_check(11.08us)" color="#96cdcd3f" shape=ellipse]
+	117 -> 121
+	122 [label="tcp_send_delayed_ack(8.44us)" color="#96cdcd3f" shape=ellipse]
+	121 -> 122
+	123 [label="bictcp_cwnd_event(0.37us)" color="#96cdcd3f" shape=ellipse]
+	122 -> 123
+	124 [label="sk_reset_timer(3.08us)" color="#96cdcd3f" shape=ellipse]
+	122 -> 124
+	125 [label="mod_timer(0.39us)" color="#96cdcd3f" shape=ellipse]
+	124 -> 125
+	126 [label="sock_def_readable(19.69us)" color="#96cdcd3f" shape=ellipse]
+	117 -> 126
+	127 [label="__wake_up_sync_key(17.1us)" color="#96cdcd3f" shape=ellipse]
+	126 -> 127
+	128 [label="_raw_spin_lock_irqsave(0.45us)" color="#96cdcd3f" shape=ellipse]
+	127 -> 128
+	129 [label="__wake_up_common(8.49us)" color="#96cdcd3f" shape=ellipse]
+	127 -> 129
+	130 [label="ep_poll_callback(5.71us)" color="#96cdcd3f" shape=ellipse]
+	129 -> 130
+	131 [label="_raw_spin_lock_irqsave(0.47us)" color="#96cdcd3f" shape=ellipse]
+	130 -> 131
+	132 [label="_raw_spin_unlock_irqrestore(0.51us)" color="#96cdcd3f" shape=ellipse]
+	130 -> 132
+	133 [label="_cond_resched(0.36us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 133
+	134 [label="_raw_spin_lock_bh(0.32us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 134
+	135 [label="tcp_v4_do_rcv(17.49us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 135
+	136 [label="ipv4_dst_check(0.1us)" color="#96cdcd3f" shape=ellipse]
+	135 -> 136
+	137 [label="tcp_rcv_established(16.2us)" color="#96cdcd3f" shape=ellipse]
+	135 -> 137
+	138 [label="tcp_queue_rcv(2.27us)" color="#96cdcd3f" shape=ellipse]
+	137 -> 138
+	139 [label="tcp_try_coalesce(1.61us)" color="#96cdcd3f" shape=ellipse]
+	138 -> 139
+	140 [label="skb_try_coalesce(0.92us)" color="#96cdcd3f" shape=ellipse]
+	139 -> 140
+	141 [label="page_address(0.15us)" color="#96cdcd3f" shape=ellipse]
+	140 -> 141
+	142 [label="tcp_event_data_recv(0.77us)" color="#96cdcd3f" shape=ellipse]
+	137 -> 142
+	143 [label="tcp_grow_window.isra.42(0.1us)" color="#96cdcd3f" shape=ellipse]
+	142 -> 143
+	144 [label="__tcp_ack_snd_check(3.33us)" color="#96cdcd3f" shape=ellipse]
+	137 -> 144
+	145 [label="__tcp_select_window(0.11us)" color="#96cdcd3f" shape=ellipse]
+	144 -> 145
+	146 [label="tcp_send_delayed_ack(2.04us)" color="#96cdcd3f" shape=ellipse]
+	144 -> 146
+	147 [label="bictcp_cwnd_event(0.09us)" color="#96cdcd3f" shape=ellipse]
+	146 -> 147
+	148 [label="sk_reset_timer(0.74us)" color="#96cdcd3f" shape=ellipse]
+	146 -> 148
+	149 [label="mod_timer(0.09us)" color="#96cdcd3f" shape=ellipse]
+	148 -> 149
+	150 [label="kfree_skb_partial(2.09us)" color="#96cdcd3f" shape=ellipse]
+	137 -> 150
+	151 [label="skb_release_head_state(0.77us)" color="#96cdcd3f" shape=ellipse]
+	150 -> 151
+	152 [label="dst_release(0.1us)" color="#96cdcd3f" shape=ellipse]
+	151 -> 152
+	153 [label="kmem_cache_free(0.11us)" color="#96cdcd3f" shape=ellipse]
+	150 -> 153
+	154 [label="sock_def_readable(4.77us)" color="#96cdcd3f" shape=ellipse]
+	137 -> 154
+	155 [label="__wake_up_sync_key(4.13us)" color="#96cdcd3f" shape=ellipse]
+	154 -> 155
+	156 [label="_raw_spin_lock_irqsave(0.12us)" color="#96cdcd3f" shape=ellipse]
+	155 -> 156
+	157 [label="__wake_up_common(2.06us)" color="#96cdcd3f" shape=ellipse]
+	155 -> 157
+	158 [label="ep_poll_callback(1.4us)" color="#96cdcd3f" shape=ellipse]
+	157 -> 158
+	159 [label="_raw_spin_lock_irqsave(0.11us)" color="#96cdcd3f" shape=ellipse]
+	158 -> 159
+	160 [label="_raw_spin_unlock_irqrestore(0.21us)" color="#96cdcd3f" shape=ellipse]
+	158 -> 160
+	161 [label="_cond_resched(0.09us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 161
+	162 [label="_raw_spin_lock_bh(0.14us)" color="#96cdcd3f" shape=ellipse]
+	112 -> 162
+	163 [label="tcp_release_cb(2.09us)" color="#96cdcd3f" shape=ellipse]
+	110 -> 163
+	164 [label="_raw_spin_unlock_bh(118.07us)" color="#96cdcd3f" shape=ellipse]
+	110 -> 164
+	165 [label="__local_bh_enable_ip(103.82us)" color="#96cdcd3f" shape=ellipse]
+	164 -> 165
+	166 [label="do_softirq.part.15(100.45us)" color="#96cdcd3f" shape=ellipse]
+	165 -> 166
+	167 [label="do_softirq_own_stack(99.13us)" color="#96cdcd3f" shape=ellipse]
+	166 -> 167
+	168 [label="call_on_stack(97.88us)" color="#96cdcd3f" shape=ellipse]
+	167 -> 168
+	169 [label="__do_softirq(96.55us)" color="#96cdcd3f" shape=ellipse]
+	168 -> 169
+	170 [label="net_rx_action(92.53us)" color="#96cdcd3f" shape=ellipse]
+	169 -> 170
+	171 [label="__usecs_to_jiffies(0.18us)" color="#96cdcd3f" shape=ellipse]
+	170 -> 171
+	172 [label="rtl8169_poll(88.54us)" color="#96cdcd3f" shape=ellipse]
+	170 -> 172
+	173 [label="__napi_alloc_skb(4.24us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 173
+	174 [label="page_frag_alloc(0.2us)" color="#96cdcd3f" shape=ellipse]
+	173 -> 174
+	175 [label="__build_skb(1.6us)" color="#96cdcd3f" shape=ellipse]
+	173 -> 175
+	176 [label="kmem_cache_alloc(0.21us)" color="#96cdcd3f" shape=ellipse]
+	175 -> 176
+	177 [label="nommu_sync_single_for_device(0.22us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 177
+	178 [label="skb_put(0.2us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 178
+	179 [label="eth_type_trans(0.21us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 179
+	180 [label="napi_gro_receive(7.27us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 180
+	181 [label="skb_gro_reset_offset(0.2us)" color="#96cdcd3f" shape=ellipse]
+	180 -> 181
+	182 [label="dev_gro_receive(4.58us)" color="#96cdcd3f" shape=ellipse]
+	180 -> 182
+	183 [label="inet_gro_receive(3.02us)" color="#96cdcd3f" shape=ellipse]
+	182 -> 183
+	184 [label="tcp4_gro_receive(1.59us)" color="#96cdcd3f" shape=ellipse]
+	183 -> 184
+	185 [label="tcp_gro_receive(0.26us)" color="#96cdcd3f" shape=ellipse]
+	184 -> 185
+	186 [label="napi_complete_done(65.58us)" color="#96cdcd3f" shape=ellipse]
+	172 -> 186
+	187 [label="napi_gro_flush(64.22us)" color="#96cdcd3f" shape=ellipse]
+	186 -> 187
+	188 [label="napi_gro_complete(62.95us)" color="#ff0033" shape=ellipse]
+	187 -> 188
+	189 [label="netif_receive_skb_internal(61.67us)" color="#ff0033" shape=ellipse]
+	188 -> 189
+	190 [label="__netif_receive_skb(60.41us)" color="#ff0033" shape=ellipse]
+	189 -> 190
+	191 [label="__netif_receive_skb_core(59.09us)" color="#ff0033" shape=ellipse]
+	190 -> 191
+	192 [label="ip_rcv(57.5us)" color="#ff0033" shape=ellipse]
+	191 -> 192
+	193 [label="ip_rcv_finish(55.99us)" color="#ff0033" shape=ellipse]
+	192 -> 193
+	194 [label="tcp_v4_early_demux(4.23us)" color="#96cdcd3f" shape=ellipse]
+	193 -> 194
+	195 [label="__inet_lookup_established(1.54us)" color="#96cdcd3f" shape=ellipse]
+	194 -> 195
+	196 [label="inet_ehashfn(0.21us)" color="#96cdcd3f" shape=ellipse]
+	195 -> 196
+	197 [label="ipv4_dst_check(0.2us)" color="#96cdcd3f" shape=ellipse]
+	194 -> 197
+	198 [label="ip_local_deliver(49.26us)" color="#ff0033" shape=ellipse]
+	193 -> 198
+	199 [label="ip_local_deliver_finish(47.95us)" color="#ff0033" shape=ellipse]
+	198 -> 199
+	200 [label="raw_local_deliver(0.2us)" color="#96cdcd3f" shape=ellipse]
+	199 -> 200
+	201 [label="tcp_v4_rcv(43.94us)" color="#ff0033" shape=ellipse]
+	199 -> 201
+	202 [label="tcp_v4_inbound_md5_hash(2.79us)" color="#96cdcd3f" shape=ellipse]
+	201 -> 202
+	203 [label="tcp_md5_do_lookup(0.18us)" color="#96cdcd3f" shape=ellipse]
+	202 -> 203
+	204 [label="tcp_parse_md5sig_option(0.18us)" color="#96cdcd3f" shape=ellipse]
+	202 -> 204
+	205 [label="tcp_filter(4.2us)" color="#96cdcd3f" shape=ellipse]
+	201 -> 205
+	206 [label="sk_filter_trim_cap(2.93us)" color="#96cdcd3f" shape=ellipse]
+	205 -> 206
+	207 [label="security_sock_rcv_skb(1.59us)" color="#96cdcd3f" shape=ellipse]
+	206 -> 207
+	208 [label="apparmor_socket_sock_rcv_skb(0.18us)" color="#96cdcd3f" shape=ellipse]
+	207 -> 208
+	209 [label="_raw_spin_lock(0.21us)" color="#96cdcd3f" shape=ellipse]
+	201 -> 209
+	210 [label="tcp_prequeue(0.19us)" color="#96cdcd3f" shape=ellipse]
+	201 -> 210
+	211 [label="tcp_v4_do_rcv(30.21us)" color="#ff0033" shape=ellipse]
+	201 -> 211
+	212 [label="ipv4_dst_check(0.2us)" color="#96cdcd3f" shape=ellipse]
+	211 -> 212
+	213 [label="tcp_rcv_established(27.53us)" color="#ff0033" shape=ellipse]
+	211 -> 213
+	214 [label="tcp_queue_rcv(2.78us)" color="#96cdcd3f" shape=ellipse]
+	213 -> 214
+	215 [label="tcp_try_coalesce(1.96us)" color="#96cdcd3f" shape=ellipse]
+	214 -> 215
+	216 [label="skb_try_coalesce(1.08us)" color="#96cdcd3f" shape=ellipse]
+	215 -> 216
+	217 [label="page_address(0.12us)" color="#96cdcd3f" shape=ellipse]
+	216 -> 217
+	218 [label="tcp_event_data_recv(1.55us)" color="#96cdcd3f" shape=ellipse]
+	213 -> 218
+	219 [label="tcp_grow_window.isra.42(0.2us)" color="#96cdcd3f" shape=ellipse]
+	218 -> 219
+	220 [label="__tcp_ack_snd_check(6.22us)" color="#96cdcd3f" shape=ellipse]
+	213 -> 220
+	221 [label="__tcp_select_window(0.1us)" color="#96cdcd3f" shape=ellipse]
+	220 -> 221
+	222 [label="tcp_send_delayed_ack(4.18us)" color="#96cdcd3f" shape=ellipse]
+	220 -> 222
+	223 [label="bictcp_cwnd_event(0.18us)" color="#96cdcd3f" shape=ellipse]
+	222 -> 223
+	224 [label="sk_reset_timer(1.47us)" color="#96cdcd3f" shape=ellipse]
+	222 -> 224
+	225 [label="mod_timer(0.21us)" color="#96cdcd3f" shape=ellipse]
+	224 -> 225
+	226 [label="kfree_skb_partial(1.44us)" color="#96cdcd3f" shape=ellipse]
+	213 -> 226
+	227 [label="skb_release_head_state(0.12us)" color="#96cdcd3f" shape=ellipse]
+	226 -> 227
+	228 [label="kmem_cache_free(0.11us)" color="#96cdcd3f" shape=ellipse]
+	226 -> 228
+	229 [label="sock_def_readable(9.62us)" color="#ff0033" shape=ellipse]
+	213 -> 229
+	230 [label="__wake_up_sync_key(8.3us)" color="#ff0033" shape=ellipse]
+	229 -> 230
+	231 [label="_raw_spin_lock_irqsave(0.23us)" color="#96cdcd3f" shape=ellipse]
+	230 -> 231
+	232 [label="__wake_up_common(4.38us)" color="#ff0033" shape=ellipse]
+	230 -> 232
+	233 [label="ep_poll_callback(2.98us)" color="#ff0033" shape=ellipse]
+	232 -> 233
+	234 [label="_raw_spin_lock_irqsave(0.24us)" color="#ff0033" shape=ellipse]
+	233 -> 234
+	235 [label="_raw_spin_unlock_irqrestore(0.2us)" color="#96cdcd3f" shape=ellipse]
+	233 -> 235
+	236 [label="_raw_spin_unlock_irqrestore(0.2us)" color="#96cdcd3f" shape=ellipse]
+	230 -> 236
+	237 [label="__local_bh_enable_ip(0.21us)" color="#96cdcd3f" shape=ellipse]
+	199 -> 237
+	238 [label="__kfree_skb_flush(0.18us)" color="#96cdcd3f" shape=ellipse]
+	170 -> 238
+	239 [label="rcu_bh_qs(0.18us)" color="#96cdcd3f" shape=ellipse]
+	169 -> 239
+	240 [label="__local_bh_enable(0.18us)" color="#96cdcd3f" shape=ellipse]
+	169 -> 240
+	241 [label="ext4_file_read_iter(74.25us)" color="#96cdcd3f" shape=ellipse]
+	9 -> 241
+	242 [label="generic_file_read_iter(70.18us)" color="#96cdcd3f" shape=ellipse]
+	241 -> 242
+	243 [label="_cond_resched(0.52us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 243
+	244 [label="pagecache_get_page(5.77us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 244
+	245 [label="find_get_entry(1.78us)" color="#96cdcd3f" shape=ellipse]
+	244 -> 245
+	246 [label="mark_page_accessed(3.75us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 246
+	247 [label="lookup_page_ext(0.62us)" color="#96cdcd3f" shape=ellipse]
+	246 -> 247
+	248 [label="kmap_atomic(4.58us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 248
+	249 [label="kmap_atomic_prot(0.64us)" color="#96cdcd3f" shape=ellipse]
+	248 -> 249
+	250 [label="__check_object_size(7.53us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 250
+	251 [label="__virt_addr_valid(0.49us)" color="#96cdcd3f" shape=ellipse]
+	250 -> 251
+	252 [label="check_stack_object(0.47us)" color="#96cdcd3f" shape=ellipse]
+	250 -> 252
+	253 [label="__copy_user_ll(0.35us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 253
+	254 [label="__kunmap_atomic(5.06us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 254
+	255 [label="native_flush_tlb_single(1.16us)" color="#96cdcd3f" shape=ellipse]
+	254 -> 255
+	256 [label="touch_atime(16.41us)" color="#96cdcd3f" shape=ellipse]
+	242 -> 256
+	257 [label="__atime_needs_update(12.39us)" color="#96cdcd3f" shape=ellipse]
+	256 -> 257
+	258 [label="current_time(8.32us)" color="#96cdcd3f" shape=ellipse]
+	257 -> 258
+	259 [label="current_kernel_time64(0.65us)" color="#96cdcd3f" shape=ellipse]
+	258 -> 259
+	260 [label="timespec_trunc(0.55us)" color="#96cdcd3f" shape=ellipse]
+	258 -> 260
+	261 [label="tty_read(23.84us)" color="#96cdcd3f" shape=ellipse]
+	8 -> 261
+	262 [label="tty_paranoia_check(0.1us)" color="#96cdcd3f" shape=ellipse]
+	261 -> 262
+	263 [label="tty_ldisc_ref_wait(1.49us)" color="#96cdcd3f" shape=ellipse]
+	261 -> 263
+	264 [label="ldsem_down_read(0.74us)" color="#96cdcd3f" shape=ellipse]
+	263 -> 264
+	265 [label="_cond_resched(0.1us)" color="#96cdcd3f" shape=ellipse]
+	264 -> 265
+	266 [label="n_tty_read(18.32us)" color="#96cdcd3f" shape=ellipse]
+	261 -> 266
+	267 [label="__tty_check_change(0.23us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 267
+	268 [label="mutex_trylock(0.12us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 268
+	269 [label="down_read(0.9us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 269
+	270 [label="_cond_resched(0.09us)" color="#96cdcd3f" shape=ellipse]
+	269 -> 270
+	271 [label="add_wait_queue(1.55us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 271
+	272 [label="_raw_spin_lock_irqsave(0.11us)" color="#96cdcd3f" shape=ellipse]
+	271 -> 272
+	273 [label="_raw_spin_unlock_irqrestore(0.1us)" color="#96cdcd3f" shape=ellipse]
+	271 -> 273
+	274 [label="copy_from_read_buf(3.8us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 274
+	275 [label="__check_object_size(1.45us)" color="#96cdcd3f" shape=ellipse]
+	274 -> 275
+	276 [label="__virt_addr_valid(0.12us)" color="#96cdcd3f" shape=ellipse]
+	275 -> 276
+	277 [label="check_stack_object(0.1us)" color="#96cdcd3f" shape=ellipse]
+	275 -> 277
+	278 [label="__copy_user_ll(0.17us)" color="#96cdcd3f" shape=ellipse]
+	274 -> 278
+	279 [label="tty_audit_add_data(0.29us)" color="#96cdcd3f" shape=ellipse]
+	274 -> 279
+	280 [label="copy_from_read_buf(0.11us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 280
+	281 [label="n_tty_kick_worker(0.1us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 281
+	282 [label="tty_wakeup(2.83us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 282
+	283 [label="__wake_up(2.17us)" color="#96cdcd3f" shape=ellipse]
+	282 -> 283
+	284 [label="_raw_spin_lock_irqsave(0.13us)" color="#96cdcd3f" shape=ellipse]
+	283 -> 284
+	285 [label="__wake_up_common(0.1us)" color="#96cdcd3f" shape=ellipse]
+	283 -> 285
+	286 [label="_raw_spin_unlock_irqrestore(0.1us)" color="#96cdcd3f" shape=ellipse]
+	283 -> 286
+	287 [label="n_tty_kick_worker(0.09us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 287
+	288 [label="up_read(0.1us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 288
+	289 [label="remove_wait_queue(1.38us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 289
+	290 [label="_raw_spin_lock_irqsave(0.11us)" color="#96cdcd3f" shape=ellipse]
+	289 -> 290
+	291 [label="_raw_spin_unlock_irqrestore(0.1us)" color="#96cdcd3f" shape=ellipse]
+	289 -> 291
+	292 [label="mutex_unlock(0.1us)" color="#96cdcd3f" shape=ellipse]
+	266 -> 292
+	293 [label="tty_ldisc_deref(0.73us)" color="#96cdcd3f" shape=ellipse]
+	261 -> 293
+	294 [label="ldsem_up_read(0.1us)" color="#96cdcd3f" shape=ellipse]
+	293 -> 294
+	295 [label="get_seconds(0.11us)" color="#96cdcd3f" shape=ellipse]
+	261 -> 295
+	296 [label="seq_read(182.9us)" color="#96cdcd3f" shape=ellipse]
+	8 -> 296
+	297 [label="mutex_lock(0.78us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 297
+	298 [label="_cond_resched(0.1us)" color="#96cdcd3f" shape=ellipse]
+	297 -> 298
+	299 [label="kvmalloc_node(2.04us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 299
+	300 [label="__kmalloc(1.41us)" color="#96cdcd3f" shape=ellipse]
+	299 -> 300
+	301 [label="kmalloc_slab(0.1us)" color="#96cdcd3f" shape=ellipse]
+	300 -> 301
+	302 [label="_cond_resched(0.09us)" color="#96cdcd3f" shape=ellipse]
+	300 -> 302
+	303 [label="single_start(0.09us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 303
+	304 [label="proc_single_show(170.58us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 304
+	305 [label="get_pid_task(0.11us)" color="#96cdcd3f" shape=ellipse]
+	304 -> 305
+	306 [label="proc_pid_status(169.16us)" color="#96cdcd3f" shape=ellipse]
+	304 -> 306
+	307 [label="get_task_mm(0.78us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 307
+	308 [label="_raw_spin_lock(0.12us)" color="#96cdcd3f" shape=ellipse]
+	307 -> 308
+	309 [label="get_task_comm(0.79us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 309
+	310 [label="_raw_spin_lock(0.1us)" color="#96cdcd3f" shape=ellipse]
+	309 -> 310
+	311 [label="seq_puts(0.43us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 311
+	312 [label="strchr(0.97us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 312
+	313 [label="seq_putc(0.1us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 313
+	314 [label="__task_pid_nr_ns(0.49us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 314
+	315 [label="get_task_cred(0.12us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 315
+	316 [label="_raw_spin_lock(0.21us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 316
+	317 [label="seq_printf(4.25us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 317
+	318 [label="seq_vprintf(2.83us)" color="#96cdcd3f" shape=ellipse]
+	317 -> 318
+	319 [label="seq_put_decimal_ull(0.76us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 319
+	320 [label="pid_nr_ns(0.11us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 320
+	321 [label="seq_put_decimal_ull(1.25us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 321
+	322 [label="from_kuid_munged(3.22us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 322
+	323 [label="map_id_up(0.84us)" color="#96cdcd3f" shape=ellipse]
+	322 -> 323
+	324 [label="seq_put_decimal_ull(0.57us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 324
+	325 [label="from_kgid_munged(3.06us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 325
+	326 [label="map_id_up(0.11us)" color="#96cdcd3f" shape=ellipse]
+	325 -> 326
+	327 [label="seq_put_decimal_ull(0.48us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 327
+	328 [label="seq_puts(0.15us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 328
+	329 [label="seq_putc(0.1us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 329
+	330 [label="seq_puts(0.6us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 330
+	331 [label="__task_pid_nr_ns(0.51us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 331
+	332 [label="seq_put_decimal_ull(0.62us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 332
+	333 [label="seq_putc(0.1us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 333
+	334 [label="__lock_task_sighand(0.91us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 334
+	335 [label="_raw_spin_lock(0.24us)" color="#96cdcd3f" shape=ellipse]
+	334 -> 335
+	336 [label="collect_sigign_sigcatch(0.85us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 336
+	337 [label="_raw_spin_unlock_irqrestore(0.1us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 337
+	338 [label="seq_put_decimal_ull(0.74us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 338
+	339 [label="render_sigset_t(63.11us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 339
+	340 [label="seq_puts(0.77us)" color="#96cdcd3f" shape=ellipse]
+	339 -> 340
+	341 [label="seq_putc(8.44us)" color="#96cdcd3f" shape=ellipse]
+	339 -> 341
+	342 [label="render_cap_t(21.75us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 342
+	343 [label="seq_puts(0.74us)" color="#96cdcd3f" shape=ellipse]
+	342 -> 343
+	344 [label="seq_printf(8.97us)" color="#96cdcd3f" shape=ellipse]
+	342 -> 344
+	345 [label="seq_vprintf(2.49us)" color="#96cdcd3f" shape=ellipse]
+	344 -> 345
+	346 [label="seq_putc(0.46us)" color="#96cdcd3f" shape=ellipse]
+	342 -> 346
+	347 [label="seq_put_decimal_ull(0.32us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 347
+	348 [label="seq_printf(0.85us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 348
+	349 [label="seq_vprintf(0.23us)" color="#96cdcd3f" shape=ellipse]
+	348 -> 349
+	350 [label="arch_prctl_spec_ctrl_get(0.21us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 350
+	351 [label="seq_printf(0.78us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 351
+	352 [label="seq_vprintf(0.17us)" color="#96cdcd3f" shape=ellipse]
+	351 -> 352
+	353 [label="seq_putc(0.12us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 353
+	354 [label="seq_printf(3.33us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 354
+	355 [label="seq_vprintf(1.9us)" color="#96cdcd3f" shape=ellipse]
+	354 -> 355
+	356 [label="cpuset_task_status_allowed(4.14us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 356
+	357 [label="seq_printf(2.36us)" color="#96cdcd3f" shape=ellipse]
+	356 -> 357
+	358 [label="seq_vprintf(0.97us)" color="#96cdcd3f" shape=ellipse]
+	357 -> 358
+	359 [label="seq_put_decimal_ull(0.44us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 359
+	360 [label="seq_putc(0.1us)" color="#96cdcd3f" shape=ellipse]
+	306 -> 360
+	361 [label="single_next(0.1us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 361
+	362 [label="single_stop(0.09us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 362
+	363 [label="__check_object_size(3.32us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 363
+	364 [label="__virt_addr_valid(0.09us)" color="#96cdcd3f" shape=ellipse]
+	363 -> 364
+	365 [label="__check_heap_object(1.38us)" color="#96cdcd3f" shape=ellipse]
+	363 -> 365
+	366 [label="page_address(0.19us)" color="#96cdcd3f" shape=ellipse]
+	365 -> 366
+	367 [label="check_stack_object(0.09us)" color="#96cdcd3f" shape=ellipse]
+	363 -> 367
+	368 [label="__copy_user_ll(0.17us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 368
+	369 [label="mutex_unlock(0.1us)" color="#96cdcd3f" shape=ellipse]
+	296 -> 369
+	370 [label="__fsnotify_parent(2.68us)" color="#96cdcd3f" shape=ellipse]
+	0 -> 370
+	371 [label="fsnotify(2.89us)" color="#96cdcd3f" shape=ellipse]
+	0 -> 371
+}
