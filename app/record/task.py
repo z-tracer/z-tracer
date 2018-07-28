@@ -263,6 +263,8 @@ class Process():
 
     def getstatm(self):
         data = self.zclient.get_procinfo('/proc/%d/statm' % (self.pid))
+        if data == None:
+            return
         data = data.split(' ')
         self.RssFile = int(data[2]) * 4096   #这里假设页大小为4096
         print(self.RssFile)
@@ -282,7 +284,9 @@ class Process():
 
     def getthreads(self):
         self.threadcnt = 0
-        outputs = self.zclient.get_cmdout('ls /proc/%d/task' % (self.pid)) 
+        outputs = self.zclient.get_cmdout('ls /proc/%d/task' % (self.pid))
+        if outputs == None:
+            return 
         lists = outputs.split('\n')
         print(lists)
         for list in lists:
@@ -319,6 +323,8 @@ class Processes():
         self.time = int(time.time() * 1000)
         self.pidcnt = 0
         outputs = self.zclient.get_cmdout('ls /proc/') 
+        if outputs == None:
+            return None
         lists = outputs.split('\n')
         #print(lists)
         for list in lists:
@@ -337,7 +343,9 @@ class Processes():
     def scanthread(self):
         self.time = int(time.time() * 1000)
         self.threadcnt = 0
-        outputs = self.zclient.get_cmdout('ls /proc/') 
+        outputs = self.zclient.get_cmdout('ls /proc/')
+        if outputs == None:
+            return None
         lists = outputs.split('\n')
         #print(lists)
         for list in lists:

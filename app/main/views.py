@@ -10,6 +10,8 @@ def before_request():
     if '/profile' not in request.url:
         if not hasattr(current_app,'curr_device'):
             return redirect(url_for('.profile'))
+        elif current_app.curr_device.zclient.connect == 0:
+            return redirect(url_for('.profile'))
     
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -38,7 +40,7 @@ def profile():
             (hasattr(current_app,'devices') and form.ip.data+':'+form.port.data not in current_app.devices):
             device = Device(form.ip.data, int(form.port.data))
             current_app.curr_device = device
-            if device.connect == 1:
+            if device.zclient.connect == 1:
                 if not hasattr(current_app,'devices'):
                     current_app.devices = {}
                 current_app.devices[form.ip.data+':'+form.port.data] = device
@@ -49,7 +51,12 @@ def profile():
                 flash('connect to %s:%s fail!'%(form.ip.data,form.port.data))
         else:
             current_app.curr_device = current_app.devices[form.ip.data+':'+form.port.data]
-            flash('update %s:%s success!'%(form.ip.data,form.port.data))
+            if current_app.curr_device.zclient.connect == 0:
+                current_app.curr_device.zclient.checkconnect()
+            if current_app.curr_device.zclient.connect == 1:
+                flash('update %s:%s success!'%(form.ip.data,form.port.data))
+            else:
+                flash('update %s:%s fail!'%(form.ip.data,form.port.data))
         current_app.curr_device.intval = int(form.timeval.data)
         current_app.curr_device.samplecnt = int(form.cnt.data)
         return redirect(url_for('.profile'))

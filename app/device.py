@@ -58,64 +58,65 @@ class Device:
         self.timer.start()
 
     def scan_process(self):
-        #loadavg
-        if not hasattr(self,'g_loadavg'):
-            self.g_loadavg = RecordDate()
-        loadavg = Loadavg(self.zclient)
-        loadavg.update()
-        self.g_loadavg.add(loadavg)
-        
-        #stat
-        if not hasattr(self,'g_stat'):
-            self.g_stat = RecordDate()
-        newstat = Stat(self.zclient)
-        newstat.update()
-        self.g_cpunum = newstat.cpunum
-        if len(self.g_stat.data) > 0:
-            newstat.diff(self.g_stat.data[-1])
-        self.g_stat.add(newstat)
-        
-        #softirqs
-        if not hasattr(self,'g_softirqs'):
-            self.g_softirqs = RecordDate()
-        newsoftirqs = Softirqs(self.zclient)
-        newsoftirqs.update()
-        if len(self.g_softirqs.data) > 0:
-            newsoftirqs.diff(self.g_softirqs.data[-1])
-        self.g_softirqs.add(newsoftirqs)
-        
-        #interrupts
-        if not hasattr(self,'g_interrupts'):
-            self.g_interrupts = RecordDate()
-        newinterrupts = Interrupts(self.zclient)
-        newinterrupts.update()
-        if len(self.g_interrupts.data) > 0:
-            newinterrupts.diff(self.g_interrupts.data[-1])
-        self.g_interrupts.add(newinterrupts)
+        if self.zclient.connect == 1:
+            #loadavg
+            if not hasattr(self,'g_loadavg'):
+                self.g_loadavg = RecordDate()
+            loadavg = Loadavg(self.zclient)
+            if loadavg.update() == 1:
+                self.g_loadavg.add(loadavg)
+            
+            #stat
+            if not hasattr(self,'g_stat'):
+                self.g_stat = RecordDate()
+            newstat = Stat(self.zclient)
+            if newstat.update() == 1:
+                self.g_cpunum = newstat.cpunum
+                if len(self.g_stat.data) > 0:
+                    newstat.diff(self.g_stat.data[-1])
+                self.g_stat.add(newstat)
+            
+            #softirqs
+            if not hasattr(self,'g_softirqs'):
+                self.g_softirqs = RecordDate()
+            newsoftirqs = Softirqs(self.zclient)
+            if newsoftirqs.update() == 1:
+                if len(self.g_softirqs.data) > 0:
+                    newsoftirqs.diff(self.g_softirqs.data[-1])
+                self.g_softirqs.add(newsoftirqs)
+            
+            #interrupts
+            if not hasattr(self,'g_interrupts'):
+                self.g_interrupts = RecordDate()
+            newinterrupts = Interrupts(self.zclient)
+            if newinterrupts.update() == 1:
+                if len(self.g_interrupts.data) > 0:
+                    newinterrupts.diff(self.g_interrupts.data[-1])
+                self.g_interrupts.add(newinterrupts)
 
-        #meminfo
-        if not hasattr(self,'g_meminfo'):
-            self.g_meminfo = RecordDate()
-        newmeminfo = Meminfo(self.zclient)
-        newmeminfo.update()
-        self.g_meminfo.add(newmeminfo)
+            #meminfo
+            if not hasattr(self,'g_meminfo'):
+                self.g_meminfo = RecordDate()
+            newmeminfo = Meminfo(self.zclient)
+            if newmeminfo.update() == 1:
+                self.g_meminfo.add(newmeminfo)
 
-        #uptime
-        if not hasattr(self,'g_uptime'):
-            self.g_uptime = RecordDate()
-        newuptime = Uptime(self.zclient)
-        newuptime.update()
-        self.g_uptime.add(newuptime)
+            #uptime
+            if not hasattr(self,'g_uptime'):
+                self.g_uptime = RecordDate()
+            newuptime = Uptime(self.zclient)
+            if newuptime.update() == 1:
+                self.g_uptime.add(newuptime)
 
-        #processes
-        if not hasattr(self,'g_processes'):
-            self.g_processes = RecordDate()
-        newprocesses = Processes(self.zclient)
-        newprocesses.scan()
-        if len(self.g_processes.data) > 0:
-            newprocesses.diff(self.g_processes.data[-1])
-        self.g_processes.add(newprocesses)
+            #processes
+            if not hasattr(self,'g_processes'):
+                self.g_processes = RecordDate()
+            newprocesses = Processes(self.zclient)
+            if newprocesses.scan() != None:
+                if len(self.g_processes.data) > 0:
+                    newprocesses.diff(self.g_processes.data[-1])
+                self.g_processes.add(newprocesses)
 
-        #ctx=app.app_context()  
-        #ctx.push() 
-        #ctx.pop() 
+            #ctx=app.app_context()  
+            #ctx.push() 
+            #ctx.pop() 

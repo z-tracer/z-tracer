@@ -11,7 +11,7 @@ class Meminfo():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/meminfo')
         if data == None:
-            return
+            return 0
         data = data.split('\n')
         for line in data:
             if line:
@@ -24,6 +24,7 @@ class Meminfo():
                     self.meminfo[line[0]] = int(line[1].replace('kB','')) * 1024
                 else:
                     self.meminfo[line[0]] = int(line[1])
+        return 1
 
     def getdata(self,name,num=0):
         if len(self.meminfo) > 0 :

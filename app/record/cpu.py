@@ -37,7 +37,7 @@ class Loadavg():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/loadavg')
         if data == None:
-            return
+            return 0
         data = data.split(' ')
         self.load1 = float(data[0])
         self.load5 = float(data[1])
@@ -47,7 +47,7 @@ class Loadavg():
         self.rec.add(2,self.load15)
         ind = data[3].find('/')
         self.nr_threads = int(data[3][ind+1:])
-        return [self.load1,self.load5,self.load15]
+        return 1
         #print(self.rec.data[0])
         #print(self.rec.data[1])
         #print(self.rec.data[2])
@@ -88,10 +88,11 @@ class Uptime():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/uptime')
         if data == None:
-            return
+            return 0
         data = data.split(' ')
         self.uptime = float(data[0])
         self.idletime = float(data[1])
+        return 1
 
     def getdata(self,name,num=1):
         if name == 'uptime':
@@ -128,7 +129,7 @@ class Stat():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/stat')
         if data == None:
-            return
+            return 0
         data = data.split('\n')
         self.cpunum = 0
         for line in data:
@@ -163,6 +164,7 @@ class Stat():
                     self.procs_running = int(line[1])
                 elif 'procs_blocked' in line[0]:
                     self.procs_blocked = int(line[1])
+        return 1
 
     def diff(self,oldstat):
         if oldstat.cpunum != 0:
@@ -320,7 +322,7 @@ class Softirqs():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/softirqs')
         if data == None:
-            return
+            return 0
         data = data.split('\n')
         #calc cpu num
         line = data[0].split(' ')
@@ -355,7 +357,8 @@ class Softirqs():
                     num = 9
                 self.softirq[num] = list(map(int, line[1:]))
         #print(self.softirq)
-    
+        return 1
+
     def diff(self,oldstat):
         if oldstat.cpunum != 0:
             #softirq
@@ -417,7 +420,7 @@ class Interrupts():
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/interrupts')
         if data == None:
-            return
+            return 0
         data = data.split('\n')
         #calc cpu num
         line = data[0].split(' ')
@@ -443,7 +446,8 @@ class Interrupts():
                 else:
                     irqname = ''.join(line[self.cpunum+1:])
                     self.interrupts.append({'irqnum':irqnum,'data':data,'irqname':irqname})
-   
+        return 1
+
     def diff(self,oldstat):
         if oldstat.cpunum != 0:
             #softirq

@@ -32,7 +32,7 @@
               <td>{{ devices[key].port }}</td>
               <td>{{ devices[key].intval }}</td>
               <td>{{ devices[key].samplecnt }}</td>
-              <td>{{ devices[key].connect }}</td>
+              <td>{{ devices[key].zclient.connect }}</td>
             </tr>
             {% endfor %}
             {% endif %}

@@ -12,7 +12,7 @@ class Zclient:
         self.lock = threading.Lock()
         self.connect = 0
 
-    def sendRequest(self, methodName, params):
+    def sendRequestRaw(self, methodName, params):
         data = ''
         try:
             self.lock.acquire()
@@ -28,6 +28,10 @@ class Zclient:
             end = str.encode("sometimewhenitrains")
             while True:
                 data = self.sock.recv(self.bufferSize)
+                if data == b'':
+                    print('connect out')
+                    self.connect = 0
+                    return None
                 serverResponse = serverResponse + data
                 if end in serverResponse:
                     serverResponse = serverResponse.replace(end,str.encode(""))
@@ -46,6 +50,13 @@ class Zclient:
             self.lock.release()
             pass
 
+
+    def sendRequest(self, methodName, params):
+        if self.connect != 0:
+            return self.sendRequestRaw(methodName, params)
+        else:
+            return None
+
     def close(self):
          if (self.sock):
             self.sock.close()
@@ -55,7 +66,7 @@ class Zclient:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.clientip, self.port))
             print('check connect...')
-            data = self.sendRequest('checkconnect',None)
+            data = self.sendRequestRaw('checkconnect',None)
             if data == 'done!':
                 self.connect = 1
                 print('ok!')
@@ -63,6 +74,7 @@ class Zclient:
             else:
                 return 0
         except Exception as error:
+            print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeer'+str(error))
             return 0
         finally:
             pass
