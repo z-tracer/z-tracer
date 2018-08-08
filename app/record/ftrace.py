@@ -352,10 +352,12 @@ class Ftrace():
         self.zclient.get_cmdout(self.makecmd("current_tracer","function_graph"))
         self.zclient.get_cmdout(self.makecmd("max_graph_depth",depth))
         self.zclient.get_cmdout(self.makecmd("set_graph_function",func))
-        self.zclient.get_cmdout(self.makecmd("funcgraph-overhead","0"))
-        self.zclient.get_cmdout(self.makecmd("funcgraph-cpu","0"))
-        self.zclient.get_cmdout(self.makecmd("funcgraph-irqs","0"))
-        self.zclient.get_cmdout(self.makecmd("funcgraph-proc","1"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-overhead","0"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-cpu","0"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-irqs","0"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-proc","1"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-abstime","1"))
+        self.zclient.get_cmdout(self.makecmd("options/funcgraph-duration","1"))
         return 1
 
     def get_available_functions(self):

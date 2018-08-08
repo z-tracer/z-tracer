@@ -8,7 +8,7 @@
     <div class="col-md-6">
     <div class="form-group required form-inline">
         <label class="control-label" for="func">函数*</label>
-        <input class="form-control" id="func" name="func" required type="text" value="" style="width:300px"">
+        <input class="form-control" id="func" name="func" required type="text" value="" style="width:300px">
         <label id="funclist" class="btn btn-link" data-toggle="modal" data-target="#modalfunclist" >支持函数</label>
     </div>
     </div>
@@ -64,16 +64,16 @@
         </div>
     </div>
     
-    <hr/> 
-    <div class="col-md-12"">
+    <div class="col-md-12"><hr></div>
+    <div class="col-md-12">
       <div class="pull-right">
         <form class="form-inline" id="gfform">
-          <a class="btn" href="javascript: resetZoom();">Reset zoom</a>
-          <a class="btn" href="javascript: clear();">Clear</a>
-          <div class="form-group">
-            <input type="text" class="form-control" id="term">
-          </div>
-          <a class="btn btn-primary" href="javascript: search();">Search</a>
+            <a class="btn btn-primary" id="btreset" href="javascript: resetZoom();" style="display: none;">Reset zoom</a>
+            <a class="btn btn-primary" id="btclear" href="javascript: clear();" style="display: none;">Clear</a>
+            <div class="form-group">
+              <input type="text" class="form-control" id="term" style="display: none;">
+            </div>
+            <a class="btn btn-primary" id="btsearch" href="javascript: search();" style="display: none;">Search</a>
         </form>
       </div>
       <div id="gfchart">
@@ -419,6 +419,10 @@
                     var chart_heatmap = new Highcharts.Chart(option);
                 
                     /************************************创建火焰图******************************/
+                    document.getElementById("btreset").style.display=""
+                    document.getElementById("btclear").style.display=""
+                    document.getElementById("btsearch").style.display=""
+                    document.getElementById("term").style.display=""
                     var hei = funcdepth*18+20;
                     flameGraph = d3.flamegraph()
                       //.height(hei)

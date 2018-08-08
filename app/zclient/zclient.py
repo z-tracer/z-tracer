@@ -1,6 +1,5 @@
 import json
 import socket
-import time
 import threading
 import os
 
@@ -58,7 +57,7 @@ class Zclient:
             return None
 
     def close(self):
-         if (self.sock):
+        if (self.sock):
             self.sock.close()
 
     def checkconnect(self):
@@ -83,7 +82,7 @@ class Zclient:
         if 1:
             params = {}
             params['path'] = filename
-            data = self.sendRequest('readfile',params)
+            data = self.sendRequest('readfile', params)
             if data != None:
                 if len(data) == 0:
                     return None
@@ -103,7 +102,7 @@ class Zclient:
         if 1:
             params = {}
             params['cmd'] = cmdline
-            outputs = self.sendRequest('runcmd',params)
+            outputs = self.sendRequest('runcmd', params)
             if outputs != None:
                 if len(outputs) == 0:
                     return None
@@ -123,7 +122,7 @@ class Zclient:
         if 1:
             params = {}
             params['cmd'] = cmdline
-            outputs = self.sendRequest('perfreport',params)
+            outputs = self.sendRequest('perfreport', params)
             if outputs != None:
                 if len(outputs) == 0:
                     return None
@@ -142,7 +141,7 @@ class Zclient:
             params = {}
             params['cmd'] = cmdline
             self.bufferSize = 1024*1024   #在这里临时将数据缓冲扩大，不然传输会很慢
-            outputs = self.sendRequest('perfscript',params)
+            outputs = self.sendRequest('perfscript', params)
             self.bufferSize = 8192
             if outputs != None:
                 if len(outputs) == 0:
@@ -160,7 +159,7 @@ class Zclient:
     def acmdstart(self, cmdline):
         params = {}
         params['cmd'] = cmdline
-        outputs = self.sendRequest('acmdstart',params)
+        outputs = self.sendRequest('acmdstart', params)
         if outputs != None:
             if len(outputs) == 0:
                 return None
@@ -168,7 +167,7 @@ class Zclient:
 
     def acmdstop(self):
         params = {}
-        outputs = self.sendRequest('acmdstop',params)
+        outputs = self.sendRequest('acmdstop', params)
         if outputs != None:
             if len(outputs) == 0:
                 return None
@@ -176,7 +175,7 @@ class Zclient:
 
     def acmdcheckdone(self):
         params = {}
-        outputs = self.sendRequest('acmdcheckdone',params)
+        outputs = self.sendRequest('acmdcheckdone', params)
         if outputs != None:
             if len(outputs) == 0:
                 return None
@@ -184,7 +183,7 @@ class Zclient:
 
     def acmdwait(self):
         params = {}
-        outputs = self.sendRequest('acmdwait',params)
+        outputs = self.sendRequest('acmdwait', params)
         if outputs != None:
             if len(outputs) == 0:
                 return None
@@ -194,7 +193,7 @@ class Zclient:
         params = {}
         params['cmd'] = cmdline
         self.bufferSize = 1024*1024
-        outputs = self.sendRequest('acmdresult',params)
+        outputs = self.sendRequest('acmdresult', params)
         self.bufferSize = 8192
         if outputs != None:
             if len(outputs) == 0:
@@ -205,18 +204,18 @@ class Zclient:
         if 1:
             params = {}
             params['path'] = filename
-            data = self.sendRequest('seqread',params)
+            data = self.sendRequest('seqread', params)
             if data != None:
                 if len(data) == 0:
                     return None
             return data
         else:
             try:
-              fh = open(filename, 'r')
-              data = fh.read()
+                fh = open(filename, 'r')
+                data = fh.read()
             except IOError:
-              print("Error: cant open file %s" % (filename))
-              return None
+                print("Error: cant open file %s" % (filename))
+                return None
             else:
-              fh.close()
+                fh.close()
             return data

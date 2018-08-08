@@ -1,8 +1,10 @@
+import os
 from flask import render_template, request, current_app, jsonify
+from app.flamescope.util.stack import generate_stack
 from . import main
 from .forms import PerfForm
 from ..record.perf import Perf
-import os
+
 
 @main.route('/perf', methods=['GET', 'POST'])
 def perf():
@@ -17,18 +19,18 @@ def perf():
 def perf_start():
     if os.path.exists('app/static/perf/perf.stack'):
         os.remove('app/static/perf/perf.stack')
-    cpu=request.form.get('cpu')
-    pid=request.form.get('pid')
-    gtime=request.form.get('time')
-    hz=request.form.get('hz')
-    adv=request.form.get('adv')
-    if not hasattr(current_app.curr_device,'perf'):
+    cpu = request.form.get('cpu')
+    pid = request.form.get('pid')
+    gtime = request.form.get('time')
+    hz = request.form.get('hz')
+    adv = request.form.get('adv')
+    if not hasattr(current_app.curr_device, 'perf'):
         current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    if len(cpu) > 0:
+    if cpu:
         current_app.curr_device.perf.cpu = cpu
-    if len(pid) > 0:
+    if pid:
         current_app.curr_device.perf.pid = pid
-    if len(adv) > 0:
+    if adv:
         current_app.curr_device.perf.adv = adv
     current_app.curr_device.perf.time = gtime
     current_app.curr_device.perf.hz = hz
@@ -42,7 +44,7 @@ def perf_start():
 
 @main.route('/perf/stop', methods=['GET', 'POST'])
 def perf_stop():
-    if not hasattr(current_app.curr_device,'perf'):
+    if not hasattr(current_app.curr_device, 'perf'):
         current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
     ret = current_app.curr_device.perf.stop()
     if ret == 'ok':
@@ -53,16 +55,16 @@ def perf_stop():
 
 @main.route('/perf/checkdone', methods=['GET', 'POST'])
 def perf_checkdone():
-    if not hasattr(current_app.curr_device,'perf'):
+    if not hasattr(current_app.curr_device, 'perf'):
         current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
     ret = current_app.curr_device.perf.checkdone()
     if ret == "done":
         print('perf done write to app/static/perf/perf.stack')
         data = current_app.curr_device.perf.script()
-        if data != None:
-            fh = open('app/static/perf/perf.stack', 'wb')
-            fh.write(data.encode())
-            fh.close()
+        if data is not None:
+            fileh = open('app/static/perf/perf.stack', 'wb')
+            fileh.write(data.encode())
+            fileh.close()
         return jsonify({'result':'ok'})
     else:
         return jsonify({'result':'error'})
@@ -71,18 +73,18 @@ def perf_checkdone():
 def perf_perfscript():
     if os.path.exists('app/static/perf/perf.stack'):
         os.remove('app/static/perf/perf.stack')
-    cpu=request.form.get('cpu')
-    pid=request.form.get('pid')
-    gtime=request.form.get('time')
-    hz=request.form.get('hz')
-    adv=request.form.get('adv')
-    if not hasattr(current_app.curr_device,'perf'):
+    cpu = request.form.get('cpu')
+    pid = request.form.get('pid')
+    gtime = request.form.get('time')
+    hz = request.form.get('hz')
+    adv = request.form.get('adv')
+    if not hasattr(current_app.curr_device, 'perf'):
         current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
-    if len(cpu) > 0:
+    if cpu:
         current_app.curr_device.perf.cpu = cpu
-    if len(pid) > 0:
+    if pid:
         current_app.curr_device.perf.pid = pid
-    if len(adv) > 0:
+    if adv:
         current_app.curr_device.perf.adv = adv
     current_app.curr_device.perf.time = gtime
     current_app.curr_device.perf.hz = hz
@@ -93,3 +95,76 @@ def perf_perfscript():
     else:
         print('file not found')
         return jsonify({'result':'error'})
+
+@main.route('/perf/probestart', methods=['GET', 'POST'])
+def perf_probestart():
+    if os.path.exists('app/static/perf/perf.stack'):
+        os.remove('app/static/perf/perf.stack')
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    current_app.curr_device.perf.delallprobe()
+    func = request.form.get('func')
+    arg = request.form.get('arg')
+    exe = request.form.get('exe')
+    if func:
+        current_app.curr_device.perf.func = func
+    else:
+        return jsonify({'result':'ÌîÐ´º¯ÊýÃû³Æ'})
+    if arg:
+        current_app.curr_device.perf.arg = arg
+    if exe:
+        current_app.curr_device.perf.exe = exe
+    ret = current_app.curr_device.perf.addprobe()
+    if ret == 'ok':
+        ret = current_app.curr_device.perf.probestart()
+        if ret == 'ok':
+            print('start ok')
+            return jsonify({'result':'ok'})
+    print('start fail', ret)
+    return jsonify({'result':ret})
+
+@main.route('/perf/probestop', methods=['GET', 'POST'])
+def perf_probestop():
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    ret = current_app.curr_device.perf.stop()
+    if ret == 'ok':
+        print('stop')
+        ret = current_app.curr_device.perf.checkdone()
+        while ret != "done":
+            ret = current_app.curr_device.perf.checkdone()
+        print('perf done write to app/static/perf/perf.stack')
+        data = current_app.curr_device.perf.script()
+        if data is not None:
+            fileh = open('app/static/perf/perf.stack', 'wb')
+            fileh.write(data.encode())
+            fileh.close()
+        flamedata = generate_stack('perf.stack', None, None)
+        if current_app.curr_device.perf.arg is not None:
+            heatmap = current_app.curr_device.perf.get_arg_heatmap(20, 50)
+        else:
+            heatmap = None
+        current_app.curr_device.perf.delprobe()
+        return jsonify({'result':'ok', 'flamedata':flamedata, 'heatmap':heatmap})
+    else:
+        return jsonify({'result':'error'})
+
+@main.route('/perf/probefunclist', methods=['GET', 'POST'])
+def perf_probefunclist():
+    func_filter = request.form.get('filter')
+    exe = request.form.get('exe')
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    ret = current_app.curr_device.perf.probe_available_functions(exe, func_filter)
+    if ret is not None and 'Failed' in ret:
+        return jsonify({'result':ret})
+    return jsonify({'result':'ok', 'funclist':current_app.curr_device.perf.available_functions})
+
+@main.route('/perf/probearglist', methods=['GET', 'POST'])
+def perf_probearglist():
+    func = request.form.get('func')
+    exe = request.form.get('exe')
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    ret = current_app.curr_device.perf.probe_available_args(exe, func)
+    return jsonify({'result':ret})

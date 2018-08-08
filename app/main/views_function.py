@@ -10,7 +10,7 @@ def function():
 
 @main.route('/function_callee', methods=['GET', 'POST'])
 def function_callee():
-    if not hasattr(current_app.curr_device,'ftrace'):
+    if not hasattr(current_app.curr_device, 'ftrace'):
         current_app.curr_device.ftrace = Ftrace(current_app.curr_device.zclient)
     current_app.curr_device.ftrace.get_available_functions()
     form = FuncForm()
@@ -31,7 +31,7 @@ def ftrace_start():
     ret = 0
     func=request.form.get('func')
     depth=request.form.get('depth')
-    print(func,depth)
+    print(func, depth)
     if func == '':
         return jsonify({'result':'需要设置函数'})
     if not hasattr(current_app.curr_device,'ftrace'):
@@ -61,8 +61,8 @@ def ftrace_stop():
             pidhist = current_app.curr_device.ftrace.get_pid_latency_dict()
             heatmap = current_app.curr_device.ftrace.list_to_heatmap(20,50)
             flame = current_app.curr_device.ftrace.stack_to_flamestack()
-            print(pidhist,heatmap,flame)
-            return jsonify({'result':'ok','pidhist':pidhist,'heatmap':heatmap, 'flame':flame})
+            print(pidhist, heatmap, flame)
+            return jsonify({'result':'ok', 'pidhist':pidhist, 'heatmap':heatmap, 'flame':flame})
         else:
             return jsonify({'result':'no tarce data'})
     else:

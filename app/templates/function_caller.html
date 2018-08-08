@@ -1,0 +1,454 @@
+{% extends "function_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
+
+{% block main_content %}
+    <hr/>
+    <form action="" method="post" class="form" role="form">
+    <div class="col-md-9">
+        <div class="form-group form-inline">
+            <label class="control-label" for="exe">程序</label>
+            <input class="form-control" id="exe" name="exe" required type="text" value="" style="width:500px">
+       </div>
+    </div>
+    <div class="col-md-3">
+        <label id="probestart" class="btn btn-success">开始采样</label>
+        <label id="probestop" class="btn btn-danger">停止采样</label>
+    </div>
+    <div class="col-md-5">
+        <div class="form-group required form-inline">
+            <label class="control-label" for="func">函数*</label>
+            <input class="form-control" id="func" name="func" required type="text" value="">
+            <label id="funclist" class="btn btn-link" data-toggle="modal" data-target="#modalfunclist" >支持函数</label>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="form-group form-inline">
+            <label class="control-label" for="arg">参数</label>
+            <input class="form-control" id="arg" name="arg" type="text" value="">
+            <label id="arglist" class="btn btn-link" data-toggle="modal" data-target="#modalarglist" >支持参数</label>
+        </div>
+    </div>
+    </form>
+    <div id="perfok" align="center" class="col-md-12">
+        <a id="ret"></a>
+    </div>
+
+    <div class="modal fade text-center" id="modalfunclist" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div id="funclistdiv" class="modal-body">
+                    <a id="funcret"></a>
+                    <table id="functable" class="table table-condensed table-striped" style="font-size:10">
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade text-center" id="modalarglist" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div id="arglistdiv" class="modal-body">
+                    <a id="argret"></a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12"><hr></div>
+    <div class="col-md-12">
+      <div class="pull-right">
+        <form class="form-inline" id="gfform">
+          <a class="btn btn-primary" id="btreset" href="javascript: resetZoom();" style="display: none;">Reset zoom</a>
+          <a class="btn btn-primary" id="btclear" href="javascript: clear();" style="display: none;">Clear</a>
+          <div class="form-group">
+            <input type="text" class="form-control" id="term" style="display: none;">
+          </div>
+          <a class="btn btn-primary" id="btsearch" href="javascript: search();" style="display: none;">Search</a>
+        </form>
+      </div>
+      <div id="gfchart"></div>
+      <div id="details"></div>
+    </div>
+
+    <div class="col-md-12" id="latencyheatmap" style="height: 400px; min-width: 400px; margin: 0 auto"></div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script type="text/javascript">
+
+    var time = 0;
+    var cnt = 0;
+    var timer = 0; 
+    var done = 0;
+    var begintime = 0;
+    var linkTmp = document.getElementById("ret");
+    var funcTmp = document.getElementById("funcret");
+    var argTmp = document.getElementById("argret");
+    var tb = 0;
+    var functb = 0;
+    var timebegin = 0;
+    var timestep = 1;
+    var latencybeing = 0;
+    var latencystep = 1;
+    var funcname = 0
+    var flameGraph;
+    var gfdiv = 0;
+    var chart_heatmap;
+
+    $("#funclist").click(function(){
+        $.post("/perf/probefunclist",
+        {
+            exe : $("#exe").val(),
+            filter : $("#func").val(),
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == "ok")
+                {
+                    funcTmp.innerText = ""; 
+                    var table=document.getElementById("functable");
+                    if(functb!=0)
+                        table.removeChild(functb);
+                    //2.创建tbody
+                    functb=document.createElement("tbody");
+                    table.appendChild(functb);
+                    functb.setAttribute("font-size",8);
+
+                    for(var ii=0;ii<data.funclist.length;ii++){
+                        var trNode=functb.insertRow();
+                        for(var jj=0; jj<3; jj++)
+                        {
+                            if(ii < data.funclist.length)
+                            {
+                                var tdNode=trNode.insertCell();
+                                tdNode.innerHTML=data.funclist[ii];
+                            }
+                            else
+                                break;
+                            ii++;
+                        }
+                    }
+                }
+                else
+                {
+                    funcTmp.innerText = data.result; 
+                }
+            }
+        });
+    });
+
+    $("#arglist").click(function(){
+        $.post("/perf/probearglist",
+        {
+            exe : $("#exe").val(),
+            func : $("#func").val(),
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                argTmp.innerText = data.result; 
+            }
+        });
+    });
+
+    $("#probestart").click(function(){
+        cnt = 0; 
+        done = 0;
+        begintime = (new Date()).getTime();
+        funcname = $("#func").val();
+        argname = $("#arg").val();
+        $.post("/perf/probestart",
+        {
+            exe : $("#exe").val(),
+            func : $("#func").val(),
+            arg  : $("#arg").val(),
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == "ok")
+                {
+                    timer = setInterval(clickdone,100);
+                    linkTmp.innerText = "正在检测..."; 
+                }
+                else
+                {
+                    linkTmp.innerText = data.result; 
+                }
+            }
+        });
+    });
+
+    function clickdone(){
+        cnt += 1;
+        if(done == 0)
+            linkTmp.innerText = ((new Date()).getTime() - begintime)/1000; 
+        else if(done == 1)
+            linkTmp.innerText = "分析中......"; 
+
+    }
+
+    $("#probestop").click(function(){
+        done = 1;
+        $.post("/perf/probestop",
+        {
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == 'ok')
+                {
+                    linkTmp.innerText = "完成"; 
+                    /************************************创建火焰图******************************/
+                    document.getElementById("btreset").style.display=""
+                    document.getElementById("btclear").style.display=""
+                    document.getElementById("btsearch").style.display=""
+                    document.getElementById("term").style.display=""
+                    flameGraph = d3.flamegraph()
+                      .width(960)
+                      .cellHeight(18)
+                      .transitionDuration(0)
+                      .minFrameSize(0)
+                      .transitionEase(d3.easeCubic)
+                      .sort(true)
+                      //Example to sort in reverse order
+                      //.sort(function(a,b){ return d3.descending(a.name, b.name);})
+                      .title("");
+
+                    // Example on how to use custom tooltips using d3-tip.
+                    var tip = d3.tip()
+                      .direction("s")
+                      .offset([8, 0])
+                      .attr('class', 'd3-flame-graph-tip')
+                      .html(function(d) { return "name: " + d.data.n + ", value: " + d.data.v; });
+
+                    flameGraph.tooltip(tip);
+
+                    var details = document.getElementById("details");
+                    flameGraph.details(details);
+
+                    var start = {
+                      "name": "root",
+                      "value": 1,
+                      "children": []
+                    }
+
+                    var parent = document.getElementById("gfchart")
+                    if(gfdiv != 0)
+                        parent.removeChild(gfdiv)
+                    gfdiv = document.createElement("div"); 
+                    gfdiv.setAttribute("id","gfdiv")
+                    parent.appendChild(gfdiv); 
+                    
+                    d3.select("#gfdiv")
+                        .datum(data.flamedata)
+                        .call(flameGraph);
+                   
+                   /************************************创建热图******************************/
+                    if(data.heatmap != null)
+                    {
+                        var option = {
+                                chart: {
+                                        renderTo: 'latencyheatmap',
+                                        type: 'heatmap',
+                                },
+                                title: {
+                                        text: '函数参数分布图',
+                                        align: 'center',
+                                        x: 40
+                                },
+                                subtitle: {
+                                        text: '参数名称：',
+                                        align: 'center',
+                                        x: 40
+                                },
+                                xAxis: {
+                                        title: {
+                                                text: 's'
+                                        },
+                                        type: 'linear',
+                                        min: 0,
+                                        max: 49,
+                                        labels: {
+                                            align: 'center',
+                                            x: 5,
+                                            y: 14,
+                                            formatter:function(){
+                                                temp=this.value*timestep + timebegin;
+                                                temp=temp.toFixed(3);
+                                                return temp;
+                                            },
+                                        },
+                                        tickLength: 16
+                                },
+                                yAxis: {
+                                        title: {
+                                                text: 'us'
+                                        },
+                                        labels: {
+                                            formatter:function(){
+                                                return Math.round(this.value*latencystep + latencybegin);
+                                            },
+                                        },
+                                        minPadding: 0,
+                                        maxPadding: 0,
+                                        startOnTick: false,
+                                        endOnTick: false,
+                                        min: 0,
+                                        max: 20,
+                                },
+                                credits: {  
+                                    enabled:false  
+                                },
+                                colorAxis: {
+                                        stops: [
+                                                [0, '#FFFFFF'],
+                                                [0.0001, '#fffbbc'],
+                                                [0.9, '#c4463a'],
+                                                [1, '#c4463a']
+                                        ],
+                                        min: 0,
+                                        max: 200,
+                                        startOnTick: false,
+                                        endOnTick: false,
+                                        labels: {
+                                                format: '{value}'
+                                        }
+                                },
+                                series: [{
+                                        borderWidth: 0,
+                                        nullColor: '#EFEFEF',
+                                        //colsize: 24 * 36e5, // one day
+                                        tooltip: {
+                                                headerFormat: '执行次数:',
+                                                pointFormat: '<b>{point.value}</b>'
+                                        },
+                                        turboThreshold: Number.MAX_VALUE, // #3404, remove after 4.0.5 release
+                                }]
+                        };
+                        timebegin = 0;
+                        timestep = data.heatmap.label[1];
+                        latencybegin = data.heatmap.label[2];
+                        latencystep = data.heatmap.label[3];
+                        option.colorAxis.max = data.heatmap.label[4];
+                        option.subtitle.text = '函数(参数):' + funcname + '(' + argname + ')';
+                        var hdata = [];
+                        for(var r=0;r<data.heatmap.data.length;r++){
+                            for(c=0;c<data.heatmap.data[r].length;c++)
+                            {
+                                var newseries=new Array();
+                                newseries[0] = c;  //x
+                                newseries[1] = r;  //y
+                                newseries[2] = data.heatmap.data[r][c]; //value
+                                hdata.push(newseries)
+                            }
+                        }
+                        option.series[0].data = hdata;
+                        chart_heatmap = new Highcharts.Chart(option);
+                    }
+                }
+                else
+                {
+                    linkTmp.innerText = data.result; 
+                }
+                if(timer != 0)
+                        clearInterval(timer);
+            }
+        });
+    });
+
+/**
+     * This plugin extends Highcharts in two ways:
+     * - Use HTML5 canvas instead of SVG for rendering of the heatmap squares. Canvas
+     *   outperforms SVG when it comes to thousands of single shapes.
+     * - Add a K-D-tree to find the nearest point on mouse move. Since we no longer have SVG shapes
+     *   to capture mouseovers, we need another way of detecting hover points for the tooltip.
+     */
+(function (H) {
+        var Series = H.Series,
+                each = H.each;
+        /**
+         * Create a hidden canvas to draw the graph on. The contents is later copied over
+         * to an SVG image element.
+         */
+        Series.prototype.getContext = function () {
+                if (!this.canvas) {
+                        this.canvas = document.createElement('canvas');
+                        this.canvas.setAttribute('width', this.chart.chartWidth);
+                        this.canvas.setAttribute('height', this.chart.chartHeight);
+                        this.image = this.chart.renderer.image('', 0, 0, this.chart.chartWidth, this.chart.chartHeight).add(this.group);
+                        this.ctx = this.canvas.getContext('2d');
+                }
+                return this.ctx;
+        };
+        /**
+         * Draw the canvas image inside an SVG image
+         */
+        Series.prototype.canvasToSVG = function () {
+                this.image.attr({ href: this.canvas.toDataURL('image/png') });
+        };
+        /**
+         * Wrap the drawPoints method to draw the points in canvas instead of the slower SVG,
+         * that requires one shape each point.
+         */
+        H.wrap(H.seriesTypes.heatmap.prototype, 'drawPoints', function () {
+                var ctx = this.getContext();
+                if (ctx) {
+                        // draw the columns
+                        each(this.points, function (point) {
+                                var plotY = point.plotY,
+                                        shapeArgs,
+                                        pointAttr;
+                                if (plotY !== undefined && !isNaN(plotY) && point.y !== null) {
+                                        shapeArgs = point.shapeArgs;
+                                        pointAttr = (point.pointAttr && point.pointAttr['']) || point.series.pointAttribs(point);
+                                        ctx.fillStyle = pointAttr.fill;
+                                        ctx.fillRect(shapeArgs.x, shapeArgs.y, shapeArgs.width, shapeArgs.height);
+                                }
+                        });
+                        this.canvasToSVG();
+                } else {
+                        this.chart.showLoading('Your browser doesn\'t support HTML5 canvas, <br>please use a modern browser');
+                        // Uncomment this to provide low-level (slow) support in oldIE. It will cause script errors on
+                        // charts with more than a few thousand points.
+                        // arguments[0].call(this);
+                }
+        });
+        H.seriesTypes.heatmap.prototype.directTouch = false; // Use k-d-tree
+}(Highcharts));
+
+    document.getElementById("gfform").addEventListener("submit", function(event){
+      event.preventDefault();
+      search();
+    });
+
+    function search() {
+      var term = document.getElementById("term").value;
+      flameGraph.search(term);
+    }
+
+    function clear() {
+      document.getElementById('term').value = '';
+      flameGraph.clear();
+    }
+
+    function resetZoom() {
+      flameGraph.resetZoom();
+    }
+
+    document.getElementById("nv_funccaller").setAttribute("class","active");
+</script>
+{% endblock %}
