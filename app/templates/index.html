@@ -83,9 +83,12 @@
                         chart_stat.redraw();
                         //activeLastPointToolip(chart_stat);
 
-                        point = chart_scpu.series[0].points[0];
+                        //point = chart_scpu.series[0].points[0];
                         newVal = y1+y2+y3+y4+y5+y6+y7;
-                        point.update(Math.round(newVal));
+                        //point.update(Math.round(newVal));
+                        smem_option.series[0].data[0].value = (newVal).toFixed(2);
+                        smem_option.series[0].data[0].name = 'cpu';
+                        scpuChart.setOption(smem_option,true);   
                     }
                     if(data.intr)
                     {
@@ -206,9 +209,12 @@
                         chart_mem.redraw();
                         //activeLastPointToolip(chart_mem);
 
-                        point = chart_smem.series[0].points[0];
+                        //point = chart_smem.series[0].points[0];
                         newVal = (1-y1/data.mem[1][0])*100;
-                        point.update(Math.round(newVal));
+                        //point.update(Math.round(newVal));
+                        smem_option.series[0].data[0].value = (newVal).toFixed(2);
+                        smem_option.series[0].data[0].name = '内存';
+                        smemChart.setOption(smem_option,true);                       
                     }
                 {% endif %}
                 {% if uptime != None %}
@@ -740,6 +746,7 @@
     {% endif %}
 
     {% if stat != None %}
+/*
     var chart_scpu = Highcharts.chart({
         chart: {
             type: 'solidgauge',
@@ -862,7 +869,80 @@
                         valueSuffix: ' %'
                 }
         }]
-    });
+    });*/
+
+    var smem_option = {
+        tooltip : {
+                formatter: "{a} <br/>{b} : {c}%"
+        },
+        toolbox: {
+                show : true,
+                feature : {
+                mark : {show: true},
+                restore : {show: false},
+                saveAsImage : {show: false}
+                }
+        },
+        series : [
+                {
+                name:'内存利用率',
+                type:'gauge',
+                splitNumber: 5,        // 分割段数，默认为5段
+                axisLine: {            // 坐标轴线
+                        lineStyle: {       // 属性lineStyle控制线条样式
+                        color: [[0.2, '#228b22'],[0.8, '#48b'],[1, '#ff4500']], 
+                        width: 10      //圆圈宽度
+                        }
+                },
+                axisTick: {            // 坐标轴小标记
+                        splitNumber: 5,    // 每份split细分多少段
+                        length :12,        // 属性length控制线长
+                        lineStyle: {       // 属性lineStyle控制线条样式
+                        color: 'auto'
+                        }
+                },
+                axisLabel: {           // 坐标轴文本标签，详见axis.axisLabel
+                        show: false,        
+                        textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+                        color: 'auto'
+                        }
+                },
+                splitLine: {           // 分隔线
+                        show: true,        // 默认显示，属性show控制显示与否
+                        length :18,         // 属性length控制线长
+                        lineStyle: {       // 属性lineStyle（详见lineStyle）控制线条样式
+                        color: 'auto'
+                        }
+                },
+                pointer : {
+                        width : 5
+                },
+                title : {
+                        show : true,
+                        offsetCenter: [0, '-40%'],       // x, y，单位px
+                        textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+                        fontWeight: 'bolder'
+                        }
+                },
+                detail : {
+                        formatter:'{value}%',
+                        textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+                        color: 'auto',
+                        fontWeight: 'bolder',
+                        fontSize: '20',
+                        }
+                },
+                data:[{value: 50, name: '内存'}]
+                }
+        ]
+    };
+    var smemChart = echarts.init(document.getElementById('smem'));
+    smem_option.series[0].data[0].name = '内存';
+    smemChart.setOption(smem_option, true);
+
+    var scpuChart = echarts.init(document.getElementById('scpu'));
+    smem_option.series[0].data[0].name = 'cpu';
+    scpuChart.setOption(smem_option, true);
     {% endif %}
 
     {% if loadavg != None %}
