@@ -209,6 +209,52 @@ cJSON * perfscript(jrpc_context * ctx, cJSON * params, cJSON *id) {
 
 int perfpid = 0;
 int perfrunning = 0;
+cJSON * perfastart(jrpc_context * ctx, cJSON * params, cJSON *id) {
+	FILE *stream = NULL;
+	int len;
+	cJSON * ph=NULL;
+	char *buf = NULL;
+	int buffersize = 8192;
+	char *p;
+	char *argv[128];
+	int i = 0;
+	int j = 0;
+	
+	ph = cJSON_GetObjectItem(params,"cmd");
+	if(ph != NULL)
+	{
+		if(perfpid == 0)
+		{
+			char *cmd = ph->valuestring;
+			perfpid = fork();
+			if(perfpid == 0)
+			{
+				p = strtok (cmd," "); 
+				while(p!=NULL) { 
+					DEBUG_PRINT (":%s\n",p); 
+					argv[i] = p;
+					i++;
+					p = strtok(NULL," "); 
+				}
+				argv[i++] = "--filter"; 
+				sprintf(argv[i++], "common_pid!=%d", getpid()); 
+				argv[i] = '\0';
+				DEBUG_PRINT("child run cmd %s\n",cmd);
+				execvp(argv[0], argv);
+				printf("error never got here\n");
+				exit(0);
+			}
+			else
+			{
+				DEBUG_PRINT("childpid %d\n",perfpid);
+				perfrunning = 1;
+			}
+			return cJSON_CreateString(okendstring);
+		}
+	}
+	return cJSON_CreateString(errendstring);
+}
+
 cJSON * acmdstart(jrpc_context * ctx, cJSON * params, cJSON *id) {
 	FILE *stream = NULL;
 	int len;

@@ -1,0 +1,225 @@
+{% extends "cpu_base.html" %}
+{% block title %}Z-Tracer{% endblock %}
+
+{% block main_content %}
+    <form action="" method="post"  class="form" role="form">
+    <div class="col-md-3">
+        <label id="ftracestart" class="btn btn-success">开始采样</label>
+        <label id="ftracestop" class="btn btn-danger">停止采样</label>
+    </div>
+    <div id="perfok" class="col-md-3">
+        <a id="ret" style="font-size: 22px;"></a>
+    </div>
+    </form>
+
+    <div class="col-md-12">
+        <table id="tt" class="table table-condensed table-striped">
+        </table>
+    </div>
+
+    <div id="signaltree" class="col-md-12" align="center"></div>
+
+    <div class="modal fade text-center" id="modalperpid" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="display: inline-block; width: auto;max-width: 100%;min-width: 500px">
+            <div class="modal-content">
+                <div class="modal-header"></div>
+                <div class="modal-body">
+                    <table id="ttpid" class="table table-condensed table-striped">
+                    </table>
+                    <div id="signalpid" class="col-md-12" align="center"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    var time = 0;
+    var timer = 0; 
+    var done = 0;
+    var begintime = 0;
+    var linkTmp = document.getElementById("ret");
+    var tb = 0;
+    var tbpid = 0;
+    var signalimg = 0;
+    var signalpidimg = 0;
+    
+    $("#ftracestart").click(function(){
+        done = 0;
+        begintime = (new Date()).getTime();
+        $.post("/ftrace/signalstart",
+        {
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == "ok")
+                {
+                    timer = setInterval(clickdone,100);
+                    linkTmp.innerText = "正在检测..."; 
+                }
+                else
+                {
+                    linkTmp.innerText = data.result; 
+                }
+            }
+        });
+    });
+
+    function clickdone(){
+        if(done == 0)
+            linkTmp.innerText = ((new Date()).getTime() - begintime)/1000; 
+        else if(done == 1)
+            linkTmp.innerText = "分析中......"; 
+
+    }
+
+    $("#ftracestop").click(function(){
+        done = 1;
+        $.post("/ftrace/signalstop",
+        {
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                if(data.result == 'ok')
+                {
+                    linkTmp.innerText = "完成";
+                    createtable();
+                    for(var pid in data.piddict)
+                    {
+                        var trNode=tb.insertRow();
+                        trNode.rname = pid;
+                        trNode.onclick= function(){draw_perpid(this,data)};
+                        var tdNode=trNode.insertCell();
+                        tdNode.innerHTML=pid;
+                        tdNode=trNode.insertCell();
+                        tdNode.innerHTML=data.piddict[pid].name;
+                        tdNode=trNode.insertCell();
+                        tdNode.innerHTML=data.piddict[pid].send;
+                        tdNode=trNode.insertCell();
+                        tdNode.innerHTML=data.piddict[pid].recv;
+                        tdNode=trNode.insertCell();
+                        tdNode.innerHTML=data.piddict[pid].error;
+                    }
+
+                    var imgContainer=document.getElementById("signaltree");
+                    if(signalimg != 0)
+                        imgContainer.removeChild(signalimg)
+
+                    signalimg=new Image();
+                    signalimg.src="/static/cache/signal.svg?="+(new Date()).valueOf();
+                    imgContainer.appendChild(signalimg);
+                }
+                else
+                {
+                    linkTmp.innerText = data.result; 
+                }
+                if(timer != 0)
+                        clearInterval(timer);
+            }
+        });
+    });
+
+    function draw_perpid(column, data){ 
+        pid = column.rname
+        createtablepid();
+        for(var sig in data.piddict[pid].map)
+        {
+            var trNode=tbpid.insertRow();
+            var tdNode=trNode.insertCell();
+            tdNode.innerHTML=sig;
+            tdNode=trNode.insertCell();
+            tdNode.innerHTML=data.piddict[pid].map[sig].send;
+            tdNode=trNode.insertCell();
+            tdNode.innerHTML=data.piddict[pid].map[sig].recv;
+            tdNode=trNode.insertCell();
+            tdNode.innerHTML=data.piddict[pid].map[sig].error;                            
+        }
+        var imgContainer=document.getElementById("signalpid");
+        if(signalpidimg != 0)
+            imgContainer.removeChild(signalpidimg)
+        
+        $('#modalperpid').modal('show');
+
+        $.post("/ftrace/signalpid",
+        {
+            pid : pid,
+        },
+        function(data,status){
+            if(status == "success")
+            {
+                signalpidimg=new Image();
+                signalpidimg.src="/static/cache/signalpid.svg?="+(new Date()).valueOf();
+                imgContainer.appendChild(signalpidimg);
+            }
+        });
+    } 
+
+    function createtable(){
+        //1.创建表格
+        var table=document.getElementById("tt");
+        if(tb!=0)
+            table.removeChild(tb);
+        //2.创建tbody
+        tb=document.createElement("tbody");
+        table.appendChild(tb);
+        //3.创建表头
+        var tr1=document.createElement("tr");
+        tb.appendChild(tr1);
+        var th1=document.createElement("th");
+        th1.appendChild(document.createTextNode("pid"));
+        tr1.appendChild(th1);
+
+        var th2=document.createElement("th");
+        th2.appendChild(document.createTextNode("名称"));
+        tr1.appendChild(th2);
+
+        var th3=document.createElement("th");
+        th3.appendChild(document.createTextNode("发送"));
+        tr1.appendChild(th3);
+
+        var th4=document.createElement("th");
+        th4.appendChild(document.createTextNode("接收"));
+        tr1.appendChild(th4);
+
+        var th5=document.createElement("th");
+        th5.appendChild(document.createTextNode("错误"));
+        tr1.appendChild(th5);
+    }
+
+    function createtablepid(){
+        //1.创建表格
+        var table=document.getElementById("ttpid");
+        if(tbpid!=0)
+            table.removeChild(tbpid);
+        //2.创建tbody
+        tbpid=document.createElement("tbody");
+        table.appendChild(tbpid);
+        //3.创建表头
+        var tr1=document.createElement("tr");
+        tbpid.appendChild(tr1);
+        var th1=document.createElement("th");
+        th1.appendChild(document.createTextNode("信号"));
+        tr1.appendChild(th1);
+
+        var th2=document.createElement("th");
+        th2.appendChild(document.createTextNode("发送"));
+        tr1.appendChild(th2);
+
+        var th3=document.createElement("th");
+        th3.appendChild(document.createTextNode("接收"));
+        tr1.appendChild(th3);
+
+        var th4=document.createElement("th");
+        th4.appendChild(document.createTextNode("错误"));
+        tr1.appendChild(th4);
+    }
+
+    document.getElementById("nv_signal").setAttribute("class","active");
+</script>
+{% endblock %}

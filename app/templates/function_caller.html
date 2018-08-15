@@ -23,14 +23,16 @@
     </div>
     <div class="col-md-5">
         <div class="form-group form-inline">
-            <label class="control-label" for="arg">参数</label>
-            <input class="form-control" id="arg" name="arg" type="text" value="">
-            <label id="arglist" class="btn btn-link" data-toggle="modal" data-target="#modalarglist" >支持参数</label>
+                <label class="control-label" for="arg">参数</label>
+                <input class="form-control" id="arg" name="arg" type="text" value="">
+                <label id="arglist" class="btn btn-link" data-toggle="modal" data-target="#modalarglist" >支持参数</label>
+                <input type="checkbox" id="retval" value="option1">
+                <label class="control-label" for="arg">跟踪返回值</label>
         </div>
     </div>
     </form>
     <div id="perfok" align="center" class="col-md-12">
-        <a id="ret"></a>
+        <a id="ret" style="font-size: 22px;"></a>
     </div>
 
     <div class="modal fade text-center" id="modalfunclist" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -81,6 +83,7 @@
     </div>
 
     <div class="col-md-12" id="latencyheatmap" style="height: 400px; min-width: 400px; margin: 0 auto"></div>
+    <div class="col-md-12" id="latencyheatmap2" style="height: 400px; min-width: 400px; margin: 0 auto"></div>
 
 {% endblock %}
 
@@ -175,6 +178,7 @@
             exe : $("#exe").val(),
             func : $("#func").val(),
             arg  : $("#arg").val(),
+            retval : document.getElementById('retval').checked,
         },
         function(data,status){
             if(status == "success")
@@ -250,7 +254,8 @@
                     if(gfdiv != 0)
                         parent.removeChild(gfdiv)
                     gfdiv = document.createElement("div"); 
-                    gfdiv.setAttribute("id","gfdiv")
+                    gfdiv.setAttribute("id","gfdiv");
+                    gfdiv.setAttribute("align","center");
                     parent.appendChild(gfdiv); 
                     
                     d3.select("#gfdiv")
@@ -258,7 +263,7 @@
                         .call(flameGraph);
                    
                    /************************************创建热图******************************/
-                    if(data.heatmap != null)
+                   if(data.heatmap != null)
                     {
                         var option = {
                                 chart: {
@@ -296,7 +301,7 @@
                                 },
                                 yAxis: {
                                         title: {
-                                                text: 'us'
+                                                text: '数值'
                                         },
                                         labels: {
                                             formatter:function(){
@@ -310,7 +315,7 @@
                                         min: 0,
                                         max: 20,
                                 },
-                                credits: {  
+                                credits: {
                                     enabled:false  
                                 },
                                 colorAxis: {
@@ -358,6 +363,117 @@
                         }
                         option.series[0].data = hdata;
                         chart_heatmap = new Highcharts.Chart(option);
+                    }
+                   /************************************创建返回值热图******************************/
+                   if(data.retheatmap != null)
+                    {
+                        var retoption = {
+                                chart: {
+                                        renderTo: 'latencyheatmap2',
+                                        type: 'heatmap',
+                                },
+                                title: {
+                                        text: '函数返回值分布图',
+                                        align: 'center',
+                                        x: 40
+                                },
+                                subtitle: {
+                                        text: '参数名称：',
+                                        align: 'center',
+                                        x: 40
+                                },
+                                xAxis: {
+                                        title: {
+                                                text: 's'
+                                        },
+                                        type: 'linear',
+                                        min: 0,
+                                        max: 49,
+                                        labels: {
+                                            align: 'center',
+                                            x: 5,
+                                            y: 14,
+                                            formatter:function(){
+                                                temp=this.value*timestep + timebegin;
+                                                temp=temp.toFixed(3);
+                                                return temp;
+                                            },
+                                        },
+                                        tickLength: 16
+                                },
+                                yAxis: {
+                                        title: {
+                                                text: '数值'
+                                        },
+                                        labels: {
+                                            formatter:function(){
+                                                return Math.round(this.value*latencystep + latencybegin);
+                                            },
+                                        },
+                                        plotLines:[{
+                                            label:'error',
+                                            color:'blue',
+                                            dashStyle:'dash',
+                                            value:1,
+                                            width:2,           
+                                            zIndex:256
+                                        }],
+                                        minPadding: 0,
+                                        maxPadding: 0,
+                                        startOnTick: false,
+                                        endOnTick: false,
+                                        min: 0,
+                                        max: 20,
+                                },
+                                credits: {  
+                                    enabled:false  
+                                },
+                                colorAxis: {
+                                        stops: [
+                                                [0, '#FFFFFF'],
+                                                [0.0001, '#fffbbc'],
+                                                [0.9, '#c4463a'],
+                                                [1, '#c4463a']
+                                        ],
+                                        min: 0,
+                                        max: 200,
+                                        startOnTick: false,
+                                        endOnTick: false,
+                                        labels: {
+                                                format: '{value}'
+                                        }
+                                },
+                                series: [{
+                                        borderWidth: 0,
+                                        nullColor: '#EFEFEF',
+                                        tooltip: {
+                                                headerFormat: '执行次数:',
+                                                pointFormat: '<b>{point.value}</b>'
+                                        },
+                                        turboThreshold: Number.MAX_VALUE, // #3404, remove after 4.0.5 release
+                                }]
+                        };
+                        timebegin = 0;
+                        timestep = data.retheatmap.label[1];
+                        latencybegin = data.retheatmap.label[2];
+                        latencystep = data.retheatmap.label[3];
+                        retoption.colorAxis.max = data.retheatmap.label[4];
+                        retoption.subtitle.text = '函数(返回值):' + funcname + '(return)';
+                        var hdata = [];
+                        for(var r=0;r<data.retheatmap.data.length;r++){
+                            for(c=0;c<data.retheatmap.data[r].length;c++)
+                            {
+                                var newseries=new Array();
+                                newseries[0] = c;  //x
+                                newseries[1] = r;  //y
+                                newseries[2] = data.retheatmap.data[r][c]; //value
+                                hdata.push(newseries)
+                            }
+                        }
+                        if(data.heatmap == null)
+                            retoption.chart.renderTo = 'latencyheatmap';
+                        retoption.series[0].data = hdata;
+                        chart_retheatmap = new Highcharts.Chart(retoption);
                     }
                 }
                 else

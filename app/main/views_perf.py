@@ -60,7 +60,7 @@ def perf_checkdone():
     ret = current_app.curr_device.perf.checkdone()
     if ret == "done":
         print('perf done write to app/static/perf/perf.stack')
-        data = current_app.curr_device.perf.script()
+        data = current_app.curr_device.perf.script("--header")
         if data is not None:
             fileh = open('app/static/perf/perf.stack', 'wb')
             fileh.write(data.encode())
@@ -106,14 +106,19 @@ def perf_probestart():
     func = request.form.get('func')
     arg = request.form.get('arg')
     exe = request.form.get('exe')
+    retval = request.form.get('retval')
     if func:
         current_app.curr_device.perf.func = func
     else:
-        return jsonify({'result':'ÃÓ–¥∫Ø ˝√˚≥∆'})
+        return jsonify({'result':'Â°´ÂÜôÂáΩÊï∞ÂêçÁß∞'})
     if arg:
         current_app.curr_device.perf.arg = arg
     if exe:
         current_app.curr_device.perf.exe = exe
+    if retval == 'true':
+        current_app.curr_device.perf.trace_ret = 1
+    else:
+        current_app.curr_device.perf.trace_ret = 0
     ret = current_app.curr_device.perf.addprobe()
     if ret == 'ok':
         ret = current_app.curr_device.perf.probestart()
@@ -144,8 +149,13 @@ def perf_probestop():
             heatmap = current_app.curr_device.perf.get_arg_heatmap(20, 50)
         else:
             heatmap = None
+        if current_app.curr_device.perf.trace_ret == 1:
+            retheatmap = current_app.curr_device.perf.get_ret_heatmap(20, 50)
+        else:
+            retheatmap = None
         current_app.curr_device.perf.delprobe()
-        return jsonify({'result':'ok', 'flamedata':flamedata, 'heatmap':heatmap})
+        return jsonify({'result':'ok', 'flamedata':flamedata, 'heatmap':heatmap, \
+                        'retheatmap':retheatmap})
     else:
         return jsonify({'result':'error'})
 
@@ -168,3 +178,40 @@ def perf_probearglist():
         current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
     ret = current_app.curr_device.perf.probe_available_args(exe, func)
     return jsonify({'result':ret})
+
+@main.route('/perf/syscallstart', methods=['GET', 'POST'])
+def perf_syscallstart():
+    if os.path.exists('app/static/perf/perf.stack'):
+        os.remove('app/static/perf/perf.stack')
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    pid = request.form.get('pid')
+    syscall = request.form.get('syscall')
+    ret = current_app.curr_device.perf.syscallstart(pid, syscall)
+    if ret == 'ok':
+        print('start ok')
+        return jsonify({'result':'ok'})
+    else:
+        print('start fail', ret)
+        return jsonify({'result':ret})
+
+@main.route('/perf/syscallstop', methods=['GET', 'POST'])
+def perf_syscallstop():
+    if not hasattr(current_app.curr_device, 'perf'):
+        current_app.curr_device.perf = Perf(current_app.curr_device.zclient)
+    ret = current_app.curr_device.perf.stop()
+    if ret == 'ok':
+        print('stop')
+        ret = current_app.curr_device.perf.checkdone()
+        while ret != "done":
+            ret = current_app.curr_device.perf.checkdone()
+        print('perf done write to app/static/perf/perf.stack')
+        data = current_app.curr_device.perf.script('--fields pid,comm,event')
+        if data is not None:
+            fileh = open('app/static/perf/perf.stack', 'wb')
+            fileh.write(data.encode())
+            fileh.close()
+            ret = current_app.curr_device.perf.syscallwalk()
+            print({'result':'ok', 'piddict':ret[0], 'syscalldict':ret[1]})
+            return jsonify({'result':'ok', 'piddict':ret[0], 'syscalldict':ret[1], 'sortdict':ret[2]})
+    return jsonify({'result':'error'})

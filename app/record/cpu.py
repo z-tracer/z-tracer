@@ -1,5 +1,5 @@
-import pygal
 import time
+import pygal
 
 #定义二维数组，存放固定长度的数据
 class Record():
@@ -14,19 +14,19 @@ class Record():
             self.columns = kwargs['columns']
             self.data = [([] * self.columns) for i in range(self.rows)] #二维数组的创建方法
             self.cnt = [0 for i in range(self.rows)]
-            
+
     def add(self, row, val):
         if self.cnt[row] >= self.columns:
             self.data[row].pop(0)
         else:
-            self.cnt[row]+=1
+            self.cnt[row] += 1
         self.data[row].append(val)
 
 class Loadavg():
-    rec = Record(rows=3,columns=50)
+    rec = Record(rows=3, columns=50)
 
-    def __init__(self, zclient,**kwargs):
-        self.load1 = 0 
+    def __init__(self, zclient):
+        self.load1 = 0
         self.load5 = 0
         self.load15 = 0
         self.time = 0
@@ -36,23 +36,23 @@ class Loadavg():
     def update(self):
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/loadavg')
-        if data == None:
+        if data is None:
             return 0
         data = data.split(' ')
         self.load1 = float(data[0])
         self.load5 = float(data[1])
         self.load15 = float(data[2])
-        self.rec.add(0,self.load1)
-        self.rec.add(1,self.load5)
-        self.rec.add(2,self.load15)
+        self.rec.add(0, self.load1)
+        self.rec.add(1, self.load5)
+        self.rec.add(2, self.load15)
         ind = data[3].find('/')
         self.nr_threads = int(data[3][ind+1:])
         return 1
         #print(self.rec.data[0])
         #print(self.rec.data[1])
         #print(self.rec.data[2])
-    
-    def getdata(self,name,num=0):
+
+    def getdata(self, name, num=0):
         if name == 'load1':
             return self.load1
         elif name == 'load5':
@@ -62,8 +62,8 @@ class Loadavg():
         elif name == 'nr_threads':
             return self.nr_threads
         else:
-            return [self.load1,self.load5,self.load15,self.nr_threads]
-    
+            return [self.load1, self.load5, self.load15, self.nr_threads]
+
     def draw(self):
         self.update()
         line_chart = pygal.Line(height=200)
@@ -75,35 +75,36 @@ class Loadavg():
 
         #chart = bar_chart.render(disable_xml_declaration = True) #直接写入svg格式数据，存在不能交互的问题
         #return bar_chart.render_response() 直接返回xml格式的页面
-        line_chart.render_to_file('app/static/loadavg.svg') 
+        line_chart.render_to_file('app/static/loadavg.svg')
         return line_chart.render_data_uri() #编码成base uri格式，以嵌入到html代码中
 
 class Uptime():
-    def __init__(self, zclient, **kwargs):
+    def __init__(self, zclient):
         self.uptime = 0  #系统启动以来的时间
         self.idletime = 0 #所有cpu空闲时间之和
         self.zclient = zclient
+        self.time = 0
 
     def update(self):
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/uptime')
-        if data == None:
+        if data is None:
             return 0
         data = data.split(' ')
         self.uptime = float(data[0])
         self.idletime = float(data[1])
         return 1
 
-    def getdata(self,name,num=1):
+    def getdata(self, name, num=1):
         if name == 'uptime':
             return self.uptime
         elif name == 'idletime':
             return self.idletime/num
         else:
-            return [self.uptime,self.idletime/num]
+            return [self.uptime, self.idletime/num]
 
 class Stat():
-    def __init__(self, zclient, **kwargs):
+    def __init__(self, zclient):
         self.cpunum = 0
         self.cpu = {}
         self.total_cputime = {}
@@ -128,7 +129,7 @@ class Stat():
     def update(self):
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/stat')
-        if data == None:
+        if data is None:
             return 0
         data = data.split('\n')
         self.cpunum = 0
@@ -138,17 +139,17 @@ class Stat():
                 line.remove('')
             if line:
                 if 'cpu' in line[0]:
-                    if line[0] == 'cpu' :
+                    if line[0] == 'cpu':
                         self.cpu['all'] = list(map(int, line[1:]))
                         self.total_cputime['all'] = 0
-                        for i in range(0,8):
+                        for i in range(0, 8):
                             self.total_cputime['all'] += self.cpu['all'][i]
                     else:
                         num = int(line[0][3:])
                         self.cpu[num] = list(map(int, line[1:]))
-                        self.cpunum +=1
+                        self.cpunum += 1
                         self.total_cputime[num] = 0
-                        for i in range(0,8):
+                        for i in range(0, 8):
                             self.total_cputime[num] += self.cpu[num][i]
                 elif 'intr' in line[0]:
                     self.intr = list(map(int, line[1:]))
@@ -166,7 +167,7 @@ class Stat():
                     self.procs_blocked = int(line[1])
         return 1
 
-    def diff(self,oldstat):
+    def diff(self, oldstat):
         if oldstat.cpunum != 0:
             #all cpu
             diff_user = self.cpu['all'][0] - oldstat.cpu['all'][0]
@@ -177,14 +178,14 @@ class Stat():
             diff_irq = self.cpu['all'][5] - oldstat.cpu['all'][5]
             diff_softirq = self.cpu['all'][6] - oldstat.cpu['all'][6]
             diff_steal = self.cpu['all'][7] - oldstat.cpu['all'][7]
-            sum = diff_user+diff_nice+diff_system+diff_idle+diff_iowait+diff_irq+diff_softirq+diff_steal
-            if sum != 0:
-                self.diffcpu = [round(diff_user*100/sum,2),round(diff_nice*100/sum,2),\
-                        round(diff_system*100/sum,2),round(diff_idle*100/sum,2),\
-                        round(diff_iowait*100/sum,2),round(diff_irq*100/sum,2),\
-                        round(diff_softirq*100/sum,2),round(diff_steal*100/sum,2)]
+            summ = diff_user+diff_nice+diff_system+diff_idle+diff_iowait+diff_irq+diff_softirq+diff_steal
+            if summ != 0:
+                self.diffcpu = [round(diff_user*100/summ, 2), round(diff_nice*100/summ, 2),\
+                        round(diff_system*100/summ, 2), round(diff_idle*100/summ, 2),\
+                        round(diff_iowait*100/summ, 2), round(diff_irq*100/summ, 2),\
+                        round(diff_softirq*100/summ, 2), round(diff_steal*100/summ, 2)]
                 #print(self.diffcpu)
-            self.difftotal_cputime['all'] =  self.total_cputime['all'] - oldstat.total_cputime['all']
+            self.difftotal_cputime['all'] = self.total_cputime['all'] - oldstat.total_cputime['all']
 
             #percpu
             for i in range(self.cpunum):
@@ -196,34 +197,34 @@ class Stat():
                 diff_irq = self.cpu[i][5] - oldstat.cpu[i][5]
                 diff_softirq = self.cpu[i][6] - oldstat.cpu[i][6]
                 diff_steal = self.cpu[i][7] - oldstat.cpu[i][7]
-                sum = diff_user+diff_nice+diff_system+diff_idle+diff_iowait+diff_irq+diff_softirq+diff_steal
-                if sum != 0:
-                    self.diffpercpu[i] = [round(diff_user*100/sum,2),round(diff_nice*100/sum,2),\
-                            round(diff_system*100/sum,2),round(diff_idle*100/sum,2),\
-                            round(diff_iowait*100/sum,2),round(diff_irq*100/sum,2),\
-                            round(diff_softirq*100/sum,2),round(diff_steal*100/sum,2)]
+                summ = diff_user+diff_nice+diff_system+diff_idle+diff_iowait+diff_irq+diff_softirq+diff_steal
+                if summ != 0:
+                    self.diffpercpu[i] = [round(diff_user*100/summ, 2), round(diff_nice*100/summ, 2),\
+                            round(diff_system*100/summ, 2), round(diff_idle*100/summ, 2),\
+                            round(diff_iowait*100/summ, 2), round(diff_irq*100/summ, 2),\
+                            round(diff_softirq*100/summ, 2), round(diff_steal*100/summ, 2)]
                     #print(self.diffpercpu[i])
-                self.difftotal_cputime[i] =  self.total_cputime[i] - oldstat.total_cputime[i]
+                self.difftotal_cputime[i] = self.total_cputime[i] - oldstat.total_cputime[i]
 
             #misc
             self.diffctxt = self.ctxt - oldstat.ctxt
             self.diffprocesses = self.processes - oldstat.processes
             self.difftime = self.time - oldstat.time
             #softirq
-            self.diffsoftirq=[]  
-            for i in range(0,len(oldstat.softirq)):  
-                summm=self.softirq[i] - oldstat.softirq[i]
-                self.diffsoftirq.append(summm) 
+            self.diffsoftirq = []
+            for i in range(0, len(oldstat.softirq)):
+                summm = self.softirq[i] - oldstat.softirq[i]
+                self.diffsoftirq.append(summm)
             #hwirq
-            self.diffintr={}  
-            for i in range(0,len(oldstat.intr)):  
-                summm=self.intr[i] - oldstat.intr[i]
+            self.diffintr = {}
+            for i in range(0, len(oldstat.intr)):
+                summm = self.intr[i] - oldstat.intr[i]
                 if summm > 0:
                     self.diffintr[i] = summm
 
-    def getdata(self,name,num=0):
+    def getdata(self, name, num=0):
         if name == 'h_irq' or name == 'h_all':
-            if len(self.diffintr) > 0:
+            if self.diffintr:
                 if name == 'h_irq':
                     num = int(num)
                     if num in self.diffintr:
@@ -232,7 +233,7 @@ class Stat():
                     return self.diffintr
         else:
             if num == 0:
-                if len(self.diffcpu) > 0:
+                if self.diffcpu:
                     if name == 'user':
                         return self.diffcpu[0]
                     elif name == 'nice':
@@ -253,7 +254,7 @@ class Stat():
                         return self.diffcpu
             else:
                 num = int(num-1)
-                if len(self.diffpercpu) > 0:
+                if self.diffpercpu:
                     if name == 'user':
                         return self.diffpercpu[num][0]
                     elif name == 'nice':
@@ -282,9 +283,9 @@ class Stat():
         elif name == 'fork':
             return self.diffprocesses
         elif name == 'misc':
-            return [self.diffctxt, self.diffprocesses,self.procs_running,self.procs_blocked]
-        
-        if len(self.diffsoftirq) > 0:
+            return [self.diffctxt, self.diffprocesses, self.procs_running, self.procs_blocked]
+
+        if self.diffsoftirq:
             if name == 's_hi':
                 return self.diffsoftirq[1]
             elif name == 's_timer':
@@ -307,11 +308,10 @@ class Stat():
                 return self.diffsoftirq[10]
             elif name == 's_softirq':
                 return self.diffsoftirq
-        
         return 0
 
 class Softirqs():
-    def __init__(self, zclient,**kwargs):
+    def __init__(self, zclient):
         self.softirq = {}
         self.diffsoftirq = {}
         self.time = 0
@@ -321,7 +321,7 @@ class Softirqs():
     def update(self):
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/softirqs')
-        if data == None:
+        if data is None:
             return 0
         data = data.split('\n')
         #calc cpu num
@@ -359,19 +359,19 @@ class Softirqs():
         #print(self.softirq)
         return 1
 
-    def diff(self,oldstat):
+    def diff(self, oldstat):
         if oldstat.cpunum != 0:
             #softirq
-            self.diffsoftirq={}
-            for softtype in range(0,10):
+            self.diffsoftirq = {}
+            for softtype in range(0, 10):
                 tmp = []
-                for i in range(0,len(oldstat.softirq[softtype])):  
-                    summm=self.softirq[softtype][i] - oldstat.softirq[softtype][i]
-                    tmp.append(summm) 
+                for i in range(0, len(oldstat.softirq[softtype])):
+                    summm = self.softirq[softtype][i] - oldstat.softirq[softtype][i]
+                    tmp.append(summm)
                 self.diffsoftirq[softtype] = tmp
 
-    def getdata(self,name,num=0):
-        if len(self.diffsoftirq) > 0 :
+    def getdata(self, name, num=0):
+        if self.diffsoftirq:
             if name == 's_hi':
                 return self.diffsoftirq[0][num]
             elif name == 's_timer':
@@ -393,22 +393,14 @@ class Softirqs():
             elif name == 's_rcu':
                 return self.diffsoftirq[9][num]
             elif name == 's_softirq':
-                return [self.diffsoftirq[0][num],self.diffsoftirq[1][num],self.diffsoftirq[2][num],\
-                self.diffsoftirq[3][num],self.diffsoftirq[4][num],self.diffsoftirq[5][num],self.diffsoftirq[6][num],\
-                self.diffsoftirq[7][num],self.diffsoftirq[8][num],self.diffsoftirq[9][num]]
+                return [self.diffsoftirq[0][num], self.diffsoftirq[1][num], \
+                self.diffsoftirq[2][num], self.diffsoftirq[3][num], self.diffsoftirq[4][num], \
+                self.diffsoftirq[5][num], self.diffsoftirq[6][num], self.diffsoftirq[7][num], \
+                self.diffsoftirq[8][num], self.diffsoftirq[9][num]]
         return 0
 
-class irq():
-    def __init__(self, **kwargs):
-        self.irqnum = ''
-        self.data = []
-        self.picname = ''
-        self.irqname = ''
-        self.edge = ''
-        self.affinity = 0
-
 class Interrupts():
-    def __init__(self, zclient,**kwargs):
+    def __init__(self, zclient):
         self.interrupts = []
         self.diffirq = {}
         self.time = 0
@@ -419,7 +411,7 @@ class Interrupts():
     def update(self):
         self.time = int(time.time() * 1000)
         data = self.zclient.get_procinfo('/proc/interrupts')
-        if data == None:
+        if data is None:
             return 0
         data = data.split('\n')
         #calc cpu num
@@ -435,23 +427,23 @@ class Interrupts():
             while '' in line:
                 line.remove('')
             if line:
-                irqnum = line[0].replace(':','')
+                irqnum = line[0].replace(':', '')
                 data = list(map(int, line[1:self.cpunum+1]))
                 if irqnum.isdigit():
                     self.irqnum += 1
                     picname = line[self.cpunum+1]
                     edge = line[self.cpunum+2]
                     irqname = ''.join(line[self.cpunum+3:])
-                    self.interrupts.append({'irqnum':irqnum,'data':data,'picname':picname,'edge':edge,'irqname':irqname})
+                    self.interrupts.append({'irqnum':irqnum, 'data':data, 'picname':picname, 'edge':edge, 'irqname':irqname})
                 else:
                     irqname = ''.join(line[self.cpunum+1:])
-                    self.interrupts.append({'irqnum':irqnum,'data':data,'irqname':irqname})
+                    self.interrupts.append({'irqnum':irqnum, 'data':data, 'irqname':irqname})
         return 1
 
-    def diff(self,oldstat):
+    def diff(self, oldstat):
         if oldstat.cpunum != 0:
             #softirq
-            self.diffirq={}
+            self.diffirq = {}
             for interrupt in self.interrupts:
                 irqnum = interrupt['irqnum']
                 if irqnum.isdigit():
@@ -459,18 +451,15 @@ class Interrupts():
                         if irqnum == oldinterrupt['irqnum']:
                             tmp = []
                             for i in range(self.cpunum):
-                                summm=interrupt['data'][i] - oldinterrupt['data'][i]
-                                tmp.append(summm) 
+                                summm = interrupt['data'][i] - oldinterrupt['data'][i]
+                                tmp.append(summm)
                             self.diffirq[irqnum] = tmp
             #print(self.diffirq)
 
-
-    def getdata(self,name,num=0):
-        if len(self.diffirq) > 0 :
-            if name.isdigit() :
+    def getdata(self, name, num=0):
+        if self.diffirq:
+            if name.isdigit():
                 return self.diffirq[name][num]
             elif name == 'interrupts':
                 return self.diffirq
         return 0
-
-
