@@ -523,6 +523,7 @@ int main(int argc,char *argv[]) {
 	jrpc_register_procedure(&my_server, acmdresult, "acmdresult", NULL );
 	jrpc_register_procedure(&my_server, seqread, "seqread", NULL );
 
+	jrpc_register_procedure(&my_server, perfastart, "perfastart", NULL );
 	jrpc_register_procedure(&my_server, perfscript, "perfscript", NULL );
 
 	jrpc_server_run(&my_server);
