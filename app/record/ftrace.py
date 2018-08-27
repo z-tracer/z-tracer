@@ -494,7 +494,7 @@ class Ftrace():
 
     def signal_analyse(self, processdict=None, pidfilter=None):
         piddict = {}
-        pidpattern = re.compile(r'\s*<([\w\d\.\-\_]*)>-(\d+)\s*')
+        pidpattern = re.compile(r'\s*((<([\w\d\.\-\_]*)>)|([\w\d\.\-\_]*))-(\d+)\s*')
         generatepattern = re.compile(r'signal_generate: sig=(\d*) errno=\d* code=\d* comm=(\w*) pid=(\d*) grp=\d* res=(\d*)')
         deliverpattern = re.compile(r'signal_deliver: sig=(\d*)')
 
@@ -509,8 +509,8 @@ class Ftrace():
             if match:
                 #print(line)
                 #print(match.groups())
-                pid = int(match.group(2))
-                comm = match.group(1)
+                pid = int(match.group(5))
+                comm = match.group(4)
                 if comm == '...':
                     comm = None
                 if comm is None and processdict is not None:
